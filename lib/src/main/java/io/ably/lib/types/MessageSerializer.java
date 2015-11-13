@@ -72,6 +72,29 @@ public class MessageSerializer {
 		} catch(IOException e) {}
 	}
 
+	public static RequestBody asMsgpackRequest(Message.Batch[] pubSpecs) {
+		return new Http.ByteArrayRequestBody(writeMsgpackArray(pubSpecs), "application/x-msgpack");
+	}
+
+	static byte[] writeMsgpackArray(Message.Batch[] pubSpecs) {
+		try {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			MessagePacker packer = MessagePack.newDefaultPacker(out);
+			writeMsgpackArray(pubSpecs, packer);
+			packer.flush();
+			return out.toByteArray();
+		} catch(IOException e) { return null; }
+	}
+
+	static void writeMsgpackArray(Message.Batch[] pubSpecs, MessagePacker packer) throws IOException {
+		try {
+			int count = pubSpecs.length;
+			packer.packArrayHeader(count);
+			for(Message.Batch spec : pubSpecs)
+				spec.writeMsgpack(packer);
+		} catch(IOException e) {}
+	}
+
 	/****************************************
 	 *              JSON decode
 	 ****************************************/
@@ -90,6 +113,10 @@ public class MessageSerializer {
 
 	public static RequestBody asJSONRequest(Message[] messages) {
 		return new JSONRequestBody(Serialisation.gson.toJson(messages));
+	}
+
+	public static RequestBody asJSONRequest(Message.Batch[] pubSpecs) {
+		return new JSONRequestBody(Serialisation.gson.toJson(pubSpecs));
 	}
 
 	/****************************************

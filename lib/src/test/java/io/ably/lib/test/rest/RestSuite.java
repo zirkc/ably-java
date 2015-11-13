@@ -21,6 +21,7 @@ import io.ably.lib.test.common.Setup;
 	RestCapabilityTest.class,
 	RestChannelHistoryTest.class,
 	RestChannelPublishTest.class,
+	RestChannelBulkPublishTest.class,
 	RestCryptoTest.class,
 	RestPresenceTest.class
 })

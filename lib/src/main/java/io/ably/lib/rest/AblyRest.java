@@ -3,11 +3,14 @@ package io.ably.lib.rest;
 import io.ably.lib.http.Http;
 import io.ably.lib.http.HttpUtils;
 import io.ably.lib.http.PaginatedQuery;
+import io.ably.lib.http.Http.RequestBody;
 import io.ably.lib.http.Http.ResponseHandler;
 import io.ably.lib.rest.Channel;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ChannelOptions;
 import io.ably.lib.types.ClientOptions;
+import io.ably.lib.types.Message;
+import io.ably.lib.types.MessageSerializer;
 import io.ably.lib.types.PaginatedResult;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.Stats;
@@ -109,6 +112,23 @@ public class AblyRest {
 	 */
 	public PaginatedResult<Stats> stats(Param[] params) throws AblyException {
 		return new PaginatedQuery<Stats>(http, "/stats", HttpUtils.defaultAcceptHeaders(false), params, StatsReader.statsResponseHandler).get();
+	}
+
+	/**
+	 * Publish a messages on one or more channels. When there are
+	 * messages to be sent on multiple channels simultaneously,
+	 * it is more efficient to use this method to publish them in
+	 * a single request, as compared with publishing via multiple
+	 * independent requests.
+	 * @throws AblyException
+	 */
+	public void publish(Message.Batch[] pubSpecs, ChannelOptions channelOptions) throws AblyException {
+		for(Message.Batch spec : pubSpecs) {
+			for(Message message : spec.messages)
+				message.encode(channelOptions);
+		}
+		RequestBody requestBody = options.useBinaryProtocol ? MessageSerializer.asMsgpackRequest(pubSpecs) : MessageSerializer.asJSONRequest(pubSpecs);
+		http.post("/messages", HttpUtils.defaultAcceptHeaders(options.useBinaryProtocol), null, requestBody, null);
 	}
 
 }
