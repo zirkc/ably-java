@@ -3,5 +3,5 @@
 set -ex
 export TERM=dumb
 
-gradle java:testRestSuite
+gradle java:testRestSuite --info
 gradle java:testRealtimeSuite
