@@ -194,23 +194,27 @@ public class Setup {
 	}
 
 	static {
-		Class<? extends ResourceLoader> claz = null;
-		try {
-			try {
-				claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.common.jre.JreResourceLoader");
-			} catch(ClassNotFoundException cnfe) {
-				try {
-					claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.android.AssetResourceLoader");
-				} catch(ClassNotFoundException cnfe2) {
-					System.err.println("Unable to instance any known ResourceLoader class");
-				}
-			}
-			resourceLoader = (ResourceLoader)claz.newInstance();
-		} catch(Throwable t) {
-			System.err.println("Unexpected exception instancing ResourceLoader class");
-			t.printStackTrace();
-		}
+		resourceLoader = new ResourceLoaderImpl();
 	}
+
+//	static {
+//		Class<? extends ResourceLoader> claz = null;
+//		try {
+//			try {
+//				claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.common.jre.JreResourceLoader");
+//			} catch(ClassNotFoundException cnfe) {
+//				try {
+//					claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.android.AssetResourceLoader");
+//				} catch(ClassNotFoundException cnfe2) {
+//					System.err.println("Unable to instance any known ResourceLoader class");
+//				}
+//			}
+//			resourceLoader = (ResourceLoader)claz.newInstance();
+//		} catch(Throwable t) {
+//			System.err.println("Unexpected exception instancing ResourceLoader class");
+//			t.printStackTrace();
+//		}
+//	}
 
 	private static ResourceLoader resourceLoader;
 	private static final String specFile = "local/testAppSpec.json";

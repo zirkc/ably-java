@@ -3,12 +3,31 @@ jdk:
   - oraclejdk8
   - openjdk7
 
-# Buffer overflow patch. Source: https://github.com/travis-ci/travis-ci/issues/5227#issuecomment-165135711
+language: android
+android:
+  components:
+    - build-tools-22.0.1
+    - android-22
+    - sys-img-armeabi-v7a-android-22
+    - extra-android-support
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+
 before_install:
-  - cat /etc/hosts # optionally check the content *before*
+  - cat /etc/hosts
   - sudo hostname "$(hostname | cut -c1-63)"
   - sed -e "s/^\\(127\\.0\\.0\\.1.*\\)/\\1 $(hostname | cut -c1-63)/" /etc/hosts | sudo tee /etc/hosts
-  - cat /etc/hosts # optionally check the content *after*
+  - cat /etc/hosts
+
+before_script:
+  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
+  - emulator -avd test -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82 &
 
 install: true
-script: "./gradlew testRealtimeSuite && ./gradlew testRestSuite"
+script:
+  - ./gradlew testRealtimeSuite
+  - ./gradlew testRestSuite
+  - ./gradlew build connectedCheck
