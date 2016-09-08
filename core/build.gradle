@@ -7,6 +7,7 @@ apply from: 'maven.gradle'
 
 buildConfig {
   buildConfigField 'String', 'LIBRARY_NAME', 'java'
+  packageName = 'io.ably.lib.debug'
 }
 
 sourceCompatibility = 1.7
@@ -21,10 +22,12 @@ dependencies {
   testCompile 'com.nanohttpd:nanohttpd:2.2.0'
   testCompile 'org.nanohttpd:nanohttpd-nanolets:2.2.0'
   testCompile 'org.mockito:mockito-all:2.0.2-beta'
+  compile 'org.nanohttpd:nanohttpd:2.3.0'
 }
 
 task coreTestsJar(type: Jar) { 
   baseName = project.name + '-tests'
+  from sourceSets.test.resources
   from sourceSets.test.output
   classifier = 'test'
   includes = ['**/test/**','**/common/**']
@@ -39,3 +42,9 @@ configurations {
 artifacts {
   coreTestsConfiguration coreTestsJar
 }
+
+task copyTestResources(type: Copy) {
+  from sourceSets.test.resources
+  into sourceSets.test.output.classesDir
+}
+processTestResources.dependsOn copyTestResources

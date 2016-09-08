@@ -1,0 +1,81 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+def groupId = "io.ably"
+def artifactId = 'ably-android'
+def localReleaseDest = "${buildDir}/release/${version}"
+
+allprojects {
+    tasks.withType(Javadoc) {
+        // To prevent javadoc warnings with Java 8
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.groupId = "io.ably"
+        pom.artifactId = artifactId
+        pom.version = version
+
+        // Add other pom properties here if you want (developer details / licenses)
+        pom.project {
+            name 'Ably java client library'
+            description 'A Java Realtime and REST client library for [Ably.io](https://www.ably.io), the realtime messaging service.'
+            packaging 'aar'
+            inceptionYear '2015'
+            scm {
+                url 'scm:git:https://github.com/ably/ably-android'
+                connection 'scm:git:https://github.com/ably/ably-android'
+                developerConnection 'scm:git:git@github.com:ably/ably-android'
+            }
+            organization {
+                name 'Ably'
+                url 'http://ably.io'
+            }
+            issueManagement {
+                system 'Github'
+                url 'https://github.com/ably/ably-android/issues'
+            }
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'https://raw.github.com/ably/ably-android/master/LICENSE'
+                    distribution 'repo'
+                }
+            }
+        }
+
+        // Export files to local storage
+        repository(url: "file://${localReleaseDest}")
+    }
+}
+
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives androidSourcesJar
+    archives androidJavadocsJar
+}
+
+task zipRelease(type: Zip) {
+    from localReleaseDest
+    destinationDir buildDir
+    archiveName "release-${version}.zip"
+}
+
+assembleRelease.dependsOn(uploadArchives)
+assembleRelease.dependsOn(zipRelease)

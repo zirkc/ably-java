@@ -5,7 +5,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.ably.lib.BuildConfig;
+import io.ably.lib.debug.BuildConfig;
 import io.ably.lib.types.Param;
 
 /**
