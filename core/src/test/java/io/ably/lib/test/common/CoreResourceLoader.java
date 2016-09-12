@@ -7,7 +7,7 @@ import java.io.IOException;
 /**
  * Created by SerhiiKukurik on 9/5/16.
  */
-public class ResourceLoaderImpl implements ResourceLoader {
+public class CoreResourceLoader implements ResourceLoader {
     @Override
     public byte[] read(String resourceName) throws IOException {
         System.err.println("loading .... " + new File("../core/src/test/resources", resourceName).getAbsolutePath());

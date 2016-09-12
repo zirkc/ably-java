@@ -1,11 +1,10 @@
 package io.ably.lib.test.common.android;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
 import io.ably.lib.test.common.ResourceLoader;
 
 public class AssetResourceLoader implements ResourceLoader {
@@ -13,7 +12,7 @@ public class AssetResourceLoader implements ResourceLoader {
 		InputStream is = null;
 		byte[] bytes = null;
 		try {
-			is = instrumentationCtx.getAssets().open(resourceName);
+			is = this.getClass().getClassLoader().getResourceAsStream(resourceName);
 			Log.v(TAG, "Reading " + is.available() + " bytes for resource " + resourceName);
 			bytes = new byte[is.available()];
 			is.read(bytes);
@@ -27,5 +26,4 @@ public class AssetResourceLoader implements ResourceLoader {
 	}
 
 	private static final String TAG = AssetResourceLoader.class.getName();
-	private Context instrumentationCtx = InstrumentationRegistry.getContext();
 }

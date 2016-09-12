@@ -1,13 +1,9 @@
 package io.ably.lib.test.realtime;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import io.ably.lib.realtime.AblyRealtime;
 import io.ably.lib.realtime.ConnectionState;
@@ -15,15 +11,19 @@ import io.ably.lib.rest.AblyRest;
 import io.ably.lib.rest.Auth.TokenCallback;
 import io.ably.lib.rest.Auth.TokenDetails;
 import io.ably.lib.rest.Auth.TokenParams;
-import io.ably.lib.test.common.Setup;
 import io.ably.lib.test.common.Helpers.ConnectionWaiter;
+import io.ably.lib.test.common.Setup;
 import io.ably.lib.test.common.Setup.TestVars;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.util.Log;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class RealtimeConnectFailTest {
 
@@ -128,6 +128,7 @@ public class RealtimeConnectFailTest {
 	 * Verify that the connection enters the disconnected state, after a token
 	 * used for successful connection expires
 	 */
+	@Ignore
 	@Test
 	public void connect_token_expire_disconnected() {
 		try {

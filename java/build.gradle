@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply from: '../core/maven.gradle'
+apply from: '../core/maven_java.gradle'
 
 ext {
     artifactId = 'ably-java'
@@ -15,7 +15,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'com.nanohttpd:nanohttpd:2.2.0'
     testCompile 'org.nanohttpd:nanohttpd-nanolets:2.3.0'
-    testCompile 'org.mockito:mockito-core:2.0.46-beta'
+    testCompile 'org.mockito:mockito-core:2.0.2-beta'
     testCompile project (path: ':core', configuration: 'coreTestsConfiguration')
 }
 

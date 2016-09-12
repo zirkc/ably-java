@@ -1,14 +1,14 @@
 package io.ably.lib.test.common;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 
-import com.google.gson.Gson;
-
-import io.ably.lib.http.HttpUtils;
 import io.ably.lib.http.Http.JSONRequestBody;
 import io.ably.lib.http.Http.ResponseHandler;
+import io.ably.lib.http.HttpUtils;
 import io.ably.lib.rest.AblyRest;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ClientOptions;
@@ -194,27 +194,24 @@ public class Setup {
 	}
 
 	static {
-		resourceLoader = new ResourceLoaderImpl();
+		Class<? extends ResourceLoader> claz = null;
+		try {
+			try {
+				claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.common.jre.JreResourceLoader");
+				resourceLoader = (ResourceLoader)claz.newInstance();
+			} catch(ClassNotFoundException cnfe) {
+				try {
+					claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.common.android.AssetResourceLoader");
+					resourceLoader = (ResourceLoader)claz.newInstance();
+				} catch(ClassNotFoundException cnfe2) {
+					resourceLoader = new CoreResourceLoader();
+				}
+			}
+		} catch(Throwable t) {
+			System.err.println("Unexpected exception instancing ResourceLoader class");
+			t.printStackTrace();
+		}
 	}
-
-//	static {
-//		Class<? extends ResourceLoader> claz = null;
-//		try {
-//			try {
-//				claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.common.jre.JreResourceLoader");
-//			} catch(ClassNotFoundException cnfe) {
-//				try {
-//					claz = (Class<? extends ResourceLoader>) Class.forName("io.ably.lib.test.android.AssetResourceLoader");
-//				} catch(ClassNotFoundException cnfe2) {
-//					System.err.println("Unable to instance any known ResourceLoader class");
-//				}
-//			}
-//			resourceLoader = (ResourceLoader)claz.newInstance();
-//		} catch(Throwable t) {
-//			System.err.println("Unexpected exception instancing ResourceLoader class");
-//			t.printStackTrace();
-//		}
-//	}
 
 	private static ResourceLoader resourceLoader;
 	private static final String specFile = "local/testAppSpec.json";

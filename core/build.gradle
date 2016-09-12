@@ -3,7 +3,7 @@ plugins {
 }
 
 apply plugin: 'java'
-apply from: 'maven.gradle'
+apply from: 'maven_java.gradle'
 
 buildConfig {
   buildConfigField 'String', 'LIBRARY_NAME', 'java'
@@ -22,15 +22,14 @@ dependencies {
   testCompile 'com.nanohttpd:nanohttpd:2.2.0'
   testCompile 'org.nanohttpd:nanohttpd-nanolets:2.2.0'
   testCompile 'org.mockito:mockito-all:2.0.2-beta'
-  compile 'org.nanohttpd:nanohttpd:2.3.0'
+  testCompile 'org.nanohttpd:nanohttpd:2.3.0'
 }
 
-task coreTestsJar(type: Jar) { 
+task coreTestsJar(type: Jar) {
   baseName = project.name + '-tests'
-  from sourceSets.test.resources
   from sourceSets.test.output
   classifier = 'test'
-  includes = ['**/test/**','**/common/**']
+  includes = ['**/test/**', '**/local/**', '**/ably-common/**']
   includeEmptyDirs false
   with jar
 }
@@ -42,9 +41,3 @@ configurations {
 artifacts {
   coreTestsConfiguration coreTestsJar
 }
-
-task copyTestResources(type: Copy) {
-  from sourceSets.test.resources
-  into sourceSets.test.output.classesDir
-}
-processTestResources.dependsOn copyTestResources

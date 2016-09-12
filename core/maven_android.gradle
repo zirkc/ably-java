@@ -14,13 +14,13 @@ allprojects {
 
 uploadArchives {
     repositories.mavenDeployer {
-        pom.groupId = "io.ably"
+        pom.groupId = groupId
         pom.artifactId = artifactId
         pom.version = version
 
         // Add other pom properties here if you want (developer details / licenses)
         pom.project {
-            name 'Ably java client library'
+            name 'Ably android client library'
             description 'A Java Realtime and REST client library for [Ably.io](https://www.ably.io), the realtime messaging service.'
             packaging 'aar'
             inceptionYear '2015'
@@ -75,6 +75,11 @@ task zipRelease(type: Zip) {
     from localReleaseDest
     destinationDir buildDir
     archiveName "release-${version}.zip"
+}
+
+assembleRelease.doLast {
+    println "Release ${version} can be found at ${localReleaseDest}/"
+    println "Release ${version} zipped can be found ${buildDir}/release-${version}.zip"
 }
 
 assembleRelease.dependsOn(uploadArchives)
