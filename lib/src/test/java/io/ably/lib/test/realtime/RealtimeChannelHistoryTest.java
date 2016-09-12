@@ -179,6 +179,11 @@ public class RealtimeChannelHistoryTest {
 			channel.publish(message2);
 			channel.publish(messages34);
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(null);
 			assertNotNull("Expected non-null messages", messages);
@@ -797,6 +802,11 @@ public class RealtimeChannelHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "25") });
 			assertNotNull("Expected non-null messages", messages);
@@ -853,6 +863,11 @@ public class RealtimeChannelHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "25") });
@@ -920,6 +935,11 @@ public class RealtimeChannelHistoryTest {
 
 			/* wait for message callbacks */
 			msgComplete.waitFor();
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] {
@@ -993,6 +1013,11 @@ public class RealtimeChannelHistoryTest {
 			/* wait for message callbacks */
 			msgComplete.waitFor();
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] {
 				new Param("direction", "backwards"),
@@ -1056,6 +1081,11 @@ public class RealtimeChannelHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "10") });
@@ -1146,6 +1176,11 @@ public class RealtimeChannelHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "10") });
 			assertNotNull("Expected non-null messages", messages);
@@ -1235,6 +1270,11 @@ public class RealtimeChannelHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "10") });
 			assertNotNull("Expected non-null messages", messages);
@@ -1323,6 +1363,11 @@ public class RealtimeChannelHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = channel.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "10") });
@@ -1445,6 +1490,11 @@ public class RealtimeChannelHistoryTest {
 				publisherThread.join();
 			} catch (InterruptedException e) {}
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = rxChannel.history(new Param[] { new Param("from_serial", rxChannel.attachSerial)});
 			assertNotNull("Expected non-null messages", messages);
@@ -1506,6 +1556,11 @@ public class RealtimeChannelHistoryTest {
 			new ChannelWaiter(rxChannel).waitFor(ChannelState.attached);
 			assertEquals("Verify attached state reached", rxChannel.state, ChannelState.attached);
 			assertNotNull("Verify attachSerial provided", rxChannel.attachSerial);
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<Message> messages = rxChannel.history(new Param[] { new Param("untilAttach", "true") });

@@ -861,10 +861,12 @@ public class RealtimePresenceTest {
 			(new ChannelWaiter(client2Channel)).waitFor(ChannelState.attached);
 			assertEquals("Verify attached state reached", client2Channel.state, ChannelState.attached);
 
+			/* waiting after attach */
+			Thread.sleep(8000L);
+
 			/* get presence set and verify client present */
 			HashMap<String, PresenceMessage> memberIndex = new HashMap<String, PresenceMessage>();
 			PresenceMessage[] members = client2Channel.presence.get(true);
-			Thread.sleep(10000L);
 			assertNotNull("Expected non-null messages", members);
 			assertEquals("Expected " + clientCount + " messages", members.length, clientCount);
 
@@ -1576,6 +1578,9 @@ public class RealtimePresenceTest {
 			Helpers.PresenceWaiter leavePresenceWaiter = new Helpers.PresenceWaiter(channel2);
 			leavePresenceWaiter.waitFor(ably1.options.clientId, Action.leave);
 
+			/* waiting */
+			Thread.sleep(8000L);
+
 			/* Validate that,
 			 *	- we received specific actions
 			 */
@@ -1583,6 +1588,9 @@ public class RealtimePresenceTest {
 			for (PresenceMessage message : receivedMessageStack) {
 				assertTrue(actions.contains(message.action));
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			fail("Unexpected exception running test: " + e.getMessage());
 		} finally {
 			if (ably1 != null) ably1.close();
 			if (ably2 != null) ably2.close();

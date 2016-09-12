@@ -184,6 +184,7 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		StateInfo newStateInfo = states.get(newState.state);
 		synchronized(this) {
 			ErrorInfo reason = newState.reason; if(reason == null) reason = newStateInfo.defaultErrorInfo;
+			if(reason != null) Log.v(TAG, "setState(): error " + reason.message + " , code: " + reason.code + " , statusCode: " + reason.statusCode);
 			change = new ConnectionStateListener.ConnectionStateChange(state.state, newState.state, newStateInfo.timeout, reason);
 			newStateInfo.host = newState.currentHost;
 			state = newStateInfo;

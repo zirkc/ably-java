@@ -99,6 +99,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.success);
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the presence history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(null);
 			assertNotNull("Expected non-null messages", messages);
@@ -150,6 +155,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.success);
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the presence history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(null);
 			assertNotNull("Expected non-null messages", messages);
@@ -198,6 +208,11 @@ public class RealtimePresenceHistoryTest {
 			/* wait for the enter callback to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.success);
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(null);
@@ -250,6 +265,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.success);
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(null);
 			assertNotNull("Expected non-null messages", messages);
@@ -298,6 +318,11 @@ public class RealtimePresenceHistoryTest {
 			/* wait for the enter callback to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.success);
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[]{new Param("direction", "forwards")});
@@ -357,6 +382,11 @@ public class RealtimePresenceHistoryTest {
 			rxChannel.attach();
 			(new ChannelWaiter(rxChannel)).waitFor(ChannelState.attached);
 			assertEquals("Verify attached state reached", rxChannel.state, ChannelState.attached);
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = rxChannel.presence.history(null);
@@ -693,6 +723,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "25") });
 			assertNotNull("Expected non-null messages", messages);
@@ -747,6 +782,11 @@ public class RealtimePresenceHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "25") });
@@ -808,6 +848,11 @@ public class RealtimePresenceHistoryTest {
 				channel.presence.enter(String.valueOf(i), msgComplete.add());
 				Thread.sleep(100L);
 			}
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] {
@@ -876,6 +921,11 @@ public class RealtimePresenceHistoryTest {
 				Thread.sleep(100L);
 			}
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] {
 				new Param("direction", "backwards"),
@@ -937,6 +987,11 @@ public class RealtimePresenceHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "10") });
@@ -1011,6 +1066,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "10") });
 			assertNotNull("Expected non-null messages", messages);
@@ -1084,6 +1144,11 @@ public class RealtimePresenceHistoryTest {
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "forwards"), new Param("limit", "10") });
 			assertNotNull("Expected non-null messages", messages);
@@ -1156,6 +1221,11 @@ public class RealtimePresenceHistoryTest {
 			/* wait for the publish callbacks to be called */
 			msgComplete.waitFor();
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = channel.presence.history(new Param[] { new Param("direction", "backwards"), new Param("limit", "10") });
@@ -1277,6 +1347,11 @@ public class RealtimePresenceHistoryTest {
 			} catch (InterruptedException e) {}
 			assertTrue("Verify success callback was called", msgComplete.errors.isEmpty());
 
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
+
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = rxChannel.presence.history(new Param[] { new Param("from_serial", rxChannel.attachSerial)});
 			assertNotNull("Expected non-null messages", messages);
@@ -1343,6 +1418,11 @@ public class RealtimePresenceHistoryTest {
 			new ChannelWaiter(rxChannel).waitFor(ChannelState.attached);
 			assertEquals("Verify attached state reached", rxChannel.state, ChannelState.attached);
 			assertNotNull("Verify attachSerial provided", rxChannel.attachSerial);
+
+			/* wait for the history to be persisted */
+			try {
+				Thread.sleep(16000);
+			} catch(InterruptedException ie) {}
 
 			/* get the history for this channel */
 			PaginatedResult<PresenceMessage> messages = rxChannel.presence.history(new Param[] { new Param("untilAttach", "true") });
