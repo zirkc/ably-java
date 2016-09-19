@@ -501,18 +501,25 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		 *   reconnect timer;
 		 * - the suspend timer has expired, so we're going into suspended state.
 		 */
-
-		if(pendingConnect != null && stateChange.reason == null) {
-			if (!Hosts.isFallback(pendingConnect.host)) {
-				if (!checkConnectivity()) {
+		if (pendingConnect != null) {
+			/* Spec: RTN17d */
+			Log.v(TAG, "checkSuspend(): reason " + (stateChange.reason != null ?
+					(String.format("statusCode = %s; code = %s", stateChange.reason.statusCode, stateChange.reason.code)) : "null"));
+			if (stateChange.reason == null ||
+					(stateChange.reason.statusCode >= 500 && stateChange.reason.statusCode <= 504) ||
+					stateChange.reason.code == REASON_DISCONNECTED.code ||
+					stateChange.reason.code == REASON_SUSPENDED.code ||
+					stateChange.reason.code == REASON_FAILED.code ||
+					stateChange.reason.code == REASON_NEVER_CONNECTED.code ||
+					stateChange.reason.code == REASON_TIMEDOUT.code) {
+				if (!Hosts.isFallback(pendingConnect.host) && !checkConnectivity()) {
 					return new StateIndication(ConnectionState.failed, new ErrorInfo("connection failed", 80000), false, pendingConnect.host);
 				}
+				/* we will try a fallback host */
+				requestState(new StateIndication(ConnectionState.connecting, null, true, pendingConnect.host));
+				/* returning null ensures we stay in the connecting state */
+				return null;
 			}
-
-			/* we will try a fallback host */
-			requestState(new StateIndication(ConnectionState.connecting, null, true, pendingConnect.host));
-			/* returning null ensures we stay in the connecting state */
-			return null;
 		}
 		boolean suspendMode = System.currentTimeMillis() > suspendTime;
 		ConnectionState expiredState = suspendMode ? ConnectionState.suspended : ConnectionState.disconnected;
