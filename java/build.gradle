@@ -1,16 +1,18 @@
 apply plugin: 'java'
-apply from: '../core/maven_java.gradle'
 
 ext {
     artifactId = 'ably-java'
 }
 
+apply from: '../core/maven.gradle'
+
 dependencies {
     compile (project.gradle.startParameter.taskNames.findAll { it =~ /generateRelease$/ }?
-            ("io.ably:ably-core:${rootProject.version}"):
+            ("io.ably:ably-core:${version}"):
             project(":core")) {
         transitive = !project.gradle.startParameter.taskNames.findAll { it =~ /simpleJar$/ }
     }
+
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
     testCompile 'com.nanohttpd:nanohttpd:2.2.0'

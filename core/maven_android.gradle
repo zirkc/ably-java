@@ -1,53 +1,12 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-def groupId = "io.ably"
-def artifactId = 'ably-android'
 def localReleaseDest = "${buildDir}/release/${version}"
 
 allprojects {
     tasks.withType(Javadoc) {
         // To prevent javadoc warnings with Java 8
         options.addStringOption('Xdoclint:none', '-quiet')
-    }
-}
-
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.groupId = groupId
-        pom.artifactId = artifactId
-        pom.version = version
-
-        // Add other pom properties here if you want (developer details / licenses)
-        pom.project {
-            name 'Ably android client library'
-            description 'A Java Realtime and REST client library for [Ably.io](https://www.ably.io), the realtime messaging service.'
-            packaging 'aar'
-            inceptionYear '2015'
-            scm {
-                url 'scm:git:https://github.com/ably/ably-android'
-                connection 'scm:git:https://github.com/ably/ably-android'
-                developerConnection 'scm:git:git@github.com:ably/ably-android'
-            }
-            organization {
-                name 'Ably'
-                url 'http://ably.io'
-            }
-            issueManagement {
-                system 'Github'
-                url 'https://github.com/ably/ably-android/issues'
-            }
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'https://raw.github.com/ably/ably-android/master/LICENSE'
-                    distribution 'repo'
-                }
-            }
-        }
-
-        // Export files to local storage
-        repository(url: "file://${localReleaseDest}")
     }
 }
 
@@ -69,6 +28,45 @@ task androidSourcesJar(type: Jar) {
 artifacts {
     archives androidSourcesJar
     archives androidJavadocsJar
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.groupId = groupId
+        pom.artifactId = artifactId
+        pom.version = version
+
+        // Add other pom properties here if you want (developer details / licenses)
+        pom.project {
+            name 'Ably java client library'
+            description 'A Java Realtime and REST client library for [Ably.io](https://www.ably.io), the realtime messaging service.'
+            packaging 'aar'
+            inceptionYear '2015'
+            scm {
+                url 'scm:git:https://github.com/ably/ably-java'
+                connection 'scm:git:https://github.com/ably/ably-java'
+                developerConnection 'scm:git:git@github.com:ably/ably-java'
+            }
+            organization {
+                name 'Ably'
+                url 'http://ably.io'
+            }
+            issueManagement {
+                system 'Github'
+                url 'https://github.com/ably/ably-java/issues'
+            }
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'https://raw.github.com/ably/ably-java/master/LICENSE'
+                    distribution 'repo'
+                }
+            }
+        }
+
+        // Export files to local storage
+        repository(url: "file://${localReleaseDest}")
+    }
 }
 
 task zipRelease(type: Zip) {
