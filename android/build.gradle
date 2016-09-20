@@ -5,13 +5,13 @@ ext {
 }
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
         buildConfigField 'String', 'LIBRARY_NAME', '"android"'
-        minSdkVersion 10
-        targetSdkVersion 22
+        minSdkVersion 8
+        targetSdkVersion 24
         versionCode 1
         versionName version
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -40,8 +40,8 @@ tasks.withType(com.android.build.gradle.internal.tasks.AndroidTestTask) { task -
 }
 
 dependencies {
-    compile project(":core")
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile (project(":core")) { transitive = true}
 
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
@@ -59,15 +59,37 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'com.nanohttpd:nanohttpd:2.2.0'
     testCompile 'org.nanohttpd:nanohttpd-nanolets:2.3.0'
-    testCompile 'org.mockito:mockito-core:2.0.17-beta'
-    testCompile "com.crittercism.dexmaker:dexmaker:1.4"
-    testCompile "com.crittercism.dexmaker:dexmaker-dx:1.4"
-    testCompile "com.crittercism.dexmaker:dexmaker-mockito:1.4"
+    testCompile 'org.mockito:mockito-core:2.0.2-beta'
     testCompile project(path: ':core', configuration: 'coreTestsConfiguration')
 }
 
 configurations {
     all*.exclude group: 'org.hamcrest', module: 'hamcrest-core'
 }
+
+project.gradle.taskGraph.whenReady {
+    connectedDebugAndroidTest {
+        ignoreFailures = true
+    }
+}
+
+task copyLibs(type: Copy){
+    from configurations.compile
+    into 'libs'
+}
+
+task cleanLibs(type: Delete) {
+    delete fileTree(dir: "libs")
+}
+
+task fullAar(type: Task) {
+    gradle.startParameter.taskNames.findAll { it.endsWith('assemble') }
+            .each { copyLibs.execute() }
+    gradle.startParameter.taskNames.findAll {  !it.endsWith('assemble') }
+            .each { clean.execute(); cleanLibs.execute() }
+}
+
+preBuild.dependsOn(fullAar)
+assemble.doLast{ cleanLibs.execute() }
 
 apply from: '../core/maven_android.gradle'

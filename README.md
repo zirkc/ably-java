@@ -10,34 +10,51 @@ Visit https://www.ably.io/documentation for a complete API reference and more ex
 
 ## Using the Realtime and REST API
 
-The Realtime library for Java is downloadable as a JAR at our [Github releases page](https://github.com/ably/ably-java/releases). You can either download the full JAR which includes all dependencies, or just the library but it will be your responsibility to ensure alld dependencies are met.
+The Realtime library for Java is downloadable as a JAR/AAR at our [Github releases page](https://github.com/ably/ably-java/releases). You can either download the full JAR/AAR which includes all dependencies, or just the library but it will be your responsibility to ensure all dependencies are met.
 
 Please refer to the [documentation](https://www.ably.io/documentation).
 
 ## Dependencies
 
-JRE 7 or later is required.
+JRE 7 or later is required. 
 Note that the [Java Unlimited JCE extensions](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html)
 must be installed in the runtime environment.
 
+[Android SDK](https://developer.android.com/studio/index.html) 8 or later is required (Android).
+
+
 ## Building ##
 
-The library consists of a generic java library (in `lib/`) and a separate Android test project (in `android-test/`).
-The base library jar is built with:
+The library consists of a java library (in `java/`) and a separate Android library (in `android/`).
+The library jar is built with:
 
-    gradle lib:jar
+    gradle java:generateRelease
 
 There is also a task to build a fat jar containing the dependencies:
 
-    gradle fullJar
+    gradle java:fullJar
+    
+The library aar is built with:
+
+    gradle android:assembleRelease
+
+Fat aar:
+
+    gradle android:assemble
 
 ## Tests
 
 Tests are based on JUnit, and there are separate suites for the REST and Realtime libraries, with gradle tasks:
 
-    gradle testRestSuite
+For java library:
 
-    gradle testRealtimeSuite
+    gradle java:testRestSuite
+
+    gradle java:testRealtimeSuite
+
+For android library:
+
+    gradle android:connectedCheck
 
 To run tests against a specific host, specify in the environment:
 
@@ -47,16 +64,22 @@ Tests will run against sandbox by default.
 
 ## Installation ##
 
-Download [the latest JAR](https://github.com/ably/ably-java/releases) or grab via Gradle:
+Download [the latest JAR/AAR](https://github.com/ably/ably-java/releases) or grab via Gradle:
 
-```groovy
-compile 'io.ably:ably-java:0.8.3'
-```
+| Java  | Android |
+|----------------------------------------------------------------------------------------|
+|``` compile 'io.ably:ably-java:0.8.3' ```|``` compile 'io.ably:ably-android:0.8.3' ```|
 
 and add following repo for a sub-dependency,
 
 ```groovy
 maven { url "https://raw.github.com/paddybyers/Java-WebSocket/mvn-repo/" }
+```
+
+If you are using android version, add this permission to your Manifest file:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
 ```
 
 ## Using the Realtime API ##
@@ -334,8 +357,8 @@ This library uses [semantic versioning](http://semver.org/). For each release, t
 * Replace all references of the current version number with the new version number (check [pom.xml](./pom.xml) and [build.gradle](.build.gradle)) and commit the changes
 * Run [`github_changelog_generator`](https://github.com/skywinder/Github-Changelog-Generator) to automate the update of the [CHANGELOG](./CHANGELOG.md). Once the CHANGELOG has completed, manually change the `Unreleased` heading and link with the current version number such as `v0.8.3`. Also ensure that the `Full Changelog` link points to the new version tag instead of the `HEAD`. Commit this change.
 * Add a tag and push to origin such as `git tag v0.8.3 && git push origin v0.8.3`
-* Run `gradle lib:jar && gradle fullJar` to build the JARs for this release
-* Visit [https://github.com/ably/ably-java/tags](https://github.com/ably/ably-java/tags) and `Add release notes` for the release, then attach the generated JARs in the folder `lib/build/libs`
+* Run `gradle java:generateRelease` to build the JARs for this release or `gradle android:assembleRelease` to build the AARs
+* Visit [https://github.com/ably/ably-java/tags](https://github.com/ably/ably-java/tags) and `Add release notes` for the release, then attach the generated JARs in the folder `core/build/libs`
 
 ## Support, feedback and troubleshooting
 
