@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -345,6 +346,13 @@ public class Http {
 				Log.d(TAG, "Connection failed to host `" + candidateHost + "`. Searching for new host...");
 				if (customFallbackHosts == null && options.fallbackHosts != null && options.fallbackHosts.length > 0) {
 					customFallbackHosts = Arrays.asList(options.fallbackHosts);
+					/* If current host already exists in fallbackHosts array, this fallback host
+					 * must be used as the default HTTP request host, so remove it.
+					 * Spec: RTN17e */
+					if (customFallbackHosts.contains(candidateHost)) {
+						customFallbackHosts = new ArrayList<>(customFallbackHosts);
+						customFallbackHosts.remove(candidateHost);
+					}
 					Collections.shuffle(customFallbackHosts);
 				}
 				candidateHost = customFallbackHosts != null ?

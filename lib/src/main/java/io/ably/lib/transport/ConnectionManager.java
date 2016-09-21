@@ -18,6 +18,8 @@ import io.ably.lib.types.ProtocolMessage.Action;
 import io.ably.lib.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -130,11 +132,15 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		state = states.get(ConnectionState.initialized);
 		String transportClass = Defaults.TRANSPORT;
 		/* debug options */
-		if(options instanceof DebugOptions)
-			protocolListener = ((DebugOptions)options).protocolListener;
+		ITransport.Factory debugTransportFactory = null;
+		if (options instanceof DebugOptions) {
+			protocolListener = ((DebugOptions) options).protocolListener;
+			debugTransportFactory = ((DebugOptions) options).debugTransportFactory;
+		}
 
 		try {
-			factory = ((ITransport.Factory)Class.forName(transportClass).newInstance());
+			factory = debugTransportFactory != null ? debugTransportFactory :
+					((ITransport.Factory) Class.forName(transportClass).newInstance());
 		} catch(Exception e) {
 			String msg = "Unable to instance factory class";
 			Log.e(getClass().getName(), msg, e);
@@ -337,6 +343,9 @@ public class ConnectionManager implements Runnable, ConnectListener {
 			connection.serial = message.connectionSerial.longValue();
 		msgSerial = 0;
 
+		/* clear list of custom fallback hosts */
+		fallbackHosts = null;
+
 		/* indicated connected state */
 		setSuspendTime();
 		notifyState(new StateIndication(ConnectionState.connected, error));
@@ -503,13 +512,10 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		 */
 		if (pendingConnect != null) {
 			/* Spec: RTN17d */
-			Log.v(TAG, "checkSuspend(): reason " + (stateChange.reason != null ?
+			Log.d(TAG, "checkSuspend(): reason " + (stateChange.reason != null ?
 					(String.format("statusCode = %s; code = %s", stateChange.reason.statusCode, stateChange.reason.code)) : "null"));
 			if (stateChange.reason == null ||
 					(stateChange.reason.statusCode >= 500 && stateChange.reason.statusCode <= 504) ||
-					stateChange.reason.code == REASON_DISCONNECTED.code ||
-					stateChange.reason.code == REASON_SUSPENDED.code ||
-					stateChange.reason.code == REASON_FAILED.code ||
 					stateChange.reason.code == REASON_NEVER_CONNECTED.code ||
 					stateChange.reason.code == REASON_TIMEDOUT.code) {
 				if (!Hosts.isFallback(pendingConnect.host) && !checkConnectivity()) {
@@ -615,7 +621,16 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		 * it will choose a fallback host at random */
 
 		if(request.fallback) {
-			String hostFallback = Hosts.isRealtimeFallbackSupported(options.realtimeHost)?(Hosts.getFallback(request.currentHost)):(null);
+			/* if fallbackHosts list is null and options.fallbackHosts array is provided,
+			 * that create list from this array and shuffle it */
+			if (fallbackHosts == null && options.fallbackHosts != null) {
+				fallbackHosts = Arrays.asList(options.fallbackHosts);
+				if (fallbackHosts.size() > 1)
+					Collections.shuffle(fallbackHosts);
+			}
+			String hostFallback = fallbackHosts != null ?
+					(options.fallbackHosts.length > 0 ? Hosts.getFallback(request.currentHost, Arrays.asList(options.fallbackHosts)) : null) :
+					(Hosts.isRealtimeFallbackSupported(options.realtimeHost) ? Hosts.getFallback(request.currentHost) : null);
 
 			if (hostFallback == null) {
 				return false;
@@ -896,6 +911,7 @@ public class ConnectionManager implements Runnable, ConnectListener {
 	private final List<QueuedMessage> queuedMessages;
 	private final PendingMessageQueue pendingMessages;
 	private final HashSet<Object> heartbeatWaiters = new HashSet<Object>();
+	private List<String> fallbackHosts;
 
 	private StateInfo state;
 	private StateIndication indicatedState, requestedState;

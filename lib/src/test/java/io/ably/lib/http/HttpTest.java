@@ -1051,7 +1051,7 @@ public class HttpTest {
 	 *********************************************/
 
 
-	static class GrumpyAnswer implements Answer<String> {
+	public static class GrumpyAnswer implements Answer<String> {
 		private int grumpinessLevel;
 		private Throwable nope;
 		private String value;
