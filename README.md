@@ -36,10 +36,6 @@ There is also a task to build a fat jar containing the dependencies:
     
 The library aar is built with:
 
-    gradle android:assembleRelease
-
-Fat aar:
-
     gradle android:assemble
 
 ## Tests
@@ -66,8 +62,8 @@ Tests will run against sandbox by default.
 
 Download [the latest JAR/AAR](https://github.com/ably/ably-java/releases) or grab via Gradle:
 
-| Java  | Android |
-|----------------------------------------------------------------------------------------|
+|  Java  |  Android  |
+|:---:|:---:|
 |``` compile 'io.ably:ably-java:0.8.3' ```|``` compile 'io.ably:ably-android:0.8.3' ```|
 
 and add following repo for a sub-dependency,

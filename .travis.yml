@@ -4,7 +4,6 @@ dist: trusty
 language: java
 jdk:
   - oraclejdk8
-  - openjdk7
 
 # Shorten the VM hostname with the new workaround
 # https://github.com/travis-ci/travis-ci/issues/5227#issuecomment-165131913
@@ -16,18 +15,25 @@ addons:
 language: android
 android:
   components:
-    - build-tools-22.0.1
-    - android-22
-    - sys-img-armeabi-v7a-android-22
-    - extra-android-support
-    - extra-google-google_play_services
-    - extra-google-m2repository
-    - extra-android-m2repository
+  - tools
+  - tools
+  - platform-tools
+  - build-tools-24.0.2
+  - android-24
+  - extra-android-support
+  - extra-google-google_play_services
+  - extra-android-m2repository
+  - extra-google-m2repository
+
+before_install:
+  # http://stackoverflow.com/questions/33820638/travis-yml-gradlew-permission-denied
+  - chmod +x gradlew
 
 before_script:
-  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-  - emulator -avd test -no-audio -no-window &
+  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
+  - "adb devices"
   - adb shell input keyevent 82 &
 
 install: true
