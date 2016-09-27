@@ -66,13 +66,7 @@ Download [the latest JAR/AAR](https://github.com/ably/ably-java/releases) or gra
 |:---:|:---:|
 |``` compile 'io.ably:ably-java:0.8.3' ```|``` compile 'io.ably:ably-android:0.8.3' ```|
 
-and add following repo for a sub-dependency,
-
-```groovy
-maven { url "https://raw.github.com/paddybyers/Java-WebSocket/mvn-repo/" }
-```
-
-If you are using android version, add this permission to your Manifest file:
+If you are using android version, add this permission to your AndroidManifest file:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
