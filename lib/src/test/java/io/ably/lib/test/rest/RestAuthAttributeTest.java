@@ -76,7 +76,7 @@ public class RestAuthAttributeTest {
 			}};
 
 			/* authorise with custom options */
-			TokenDetails tokenDetails1 = ably.auth.authorise(authOptions, tokenParams);
+			TokenDetails tokenDetails1 = ably.auth.authorise(tokenParams, authOptions);
 
 			/* Verify that,
 			 * tokenDetails1 isn't null,
@@ -123,11 +123,11 @@ public class RestAuthAttributeTest {
 			final String clientId1 = tokenDetails1.clientId;
 
 			/* authorise with force attribute */
-			TokenDetails tokenDetails2 = ably.auth.authorise(
+			TokenDetails tokenDetails2 = ably.auth.authorise(null,
 					new AuthOptions() {{
 						force = true;
 						key = ably.options.key;
-					}}, null);
+					}});
 			final String token2 = tokenDetails2.token;
 			final String clientId2 = tokenDetails2.clientId;
 
@@ -179,7 +179,7 @@ public class RestAuthAttributeTest {
 			TokenParams tokenParams = new TokenParams();
 
 			/* create token request with custom AuthOptions that has attribute queryTime */
-			TokenRequest tokenRequest = ablyForTime.auth.createTokenRequest(authOptions, tokenParams);
+			TokenRequest tokenRequest = ablyForTime.auth.createTokenRequest(tokenParams, authOptions);
 
 			/* verify that issued time of server equals fake expected value */
 			assertEquals(expectedClientId, tokenRequest.clientId);
@@ -187,12 +187,12 @@ public class RestAuthAttributeTest {
 
 			/* authorise for store custom AuthOptions that has attribute queryTime */
 			try {
-				ablyForTime.auth.authorise(authOptions, tokenParams);
+				ablyForTime.auth.authorise(tokenParams, authOptions);
 			} catch (Throwable e) {
 			}
 
 			/* create token request with stored AuthOptions */
-			tokenRequest = ablyForTime.auth.createTokenRequest(null, tokenParams);
+			tokenRequest = ablyForTime.auth.createTokenRequest(tokenParams, null);
 
 			/* Verify that,
 			* 	 - timestamp not equals fake server time
@@ -248,13 +248,13 @@ public class RestAuthAttributeTest {
 			authOptions.authCallback = tokenCallback;
 			TokenParams tokenParams = new TokenParams();
 			tokenParams.timestamp = expectedTimestamp;
-			TokenDetails tokenDetails1 = ably.auth.authorise(authOptions, tokenParams);
+			TokenDetails tokenDetails1 = ably.auth.authorise(tokenParams, authOptions);
 			final String token1 = tokenDetails1.token;
 			final String clientId1 = tokenDetails1.clientId;
 
 			/* force authorise with stored TokenParams values */
 			authOptions.force = true;
-			TokenDetails tokenDetails2 = ably.auth.authorise(authOptions, null);
+			TokenDetails tokenDetails2 = ably.auth.authorise(null, authOptions);
 			final String token2 = tokenDetails2.token;
 			final String clientId2 = tokenDetails2.clientId;
 

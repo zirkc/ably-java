@@ -379,7 +379,7 @@ public class Auth {
 	 * - queryTime   (optional) boolean indicating that the Ably system should be
 	 *               queried for the current time when none is specified explicitly.
 	 */
-	public TokenDetails authorise(AuthOptions options, TokenParams params) throws AblyException {
+	public TokenDetails authorise(TokenParams params, AuthOptions options) throws AblyException {
 		/* Spec: RSA10g */
 		if (options != null)
 			this.authOptions = options.storedValues();
@@ -499,7 +499,7 @@ public class Auth {
 			signedTokenRequest = (TokenRequest)authUrlResponse;
 		} else if(tokenOptions.key != null) {
 			Log.i("Auth.requestToken()", "using token auth with client-side signing");
-			signedTokenRequest = createTokenRequest(tokenOptions, params);
+			signedTokenRequest = createTokenRequest(params, tokenOptions);
 		} else {
 			throw AblyException.fromErrorInfo(new ErrorInfo("Auth.requestToken(): options must include valid authentication parameters", 400, 40000));
 		}
@@ -528,7 +528,7 @@ public class Auth {
 	 * @return: the params augmented with the mac.
 	 * @throws AblyException
 	 */
-	public TokenRequest createTokenRequest(AuthOptions options, TokenParams params) throws AblyException {
+	public TokenRequest createTokenRequest(TokenParams params, AuthOptions options) throws AblyException {
 		/* Spec: RSA9h */
 		options = (options == null) ? this.authOptions : options.copy();
 		params = (params == null) ? this.tokenParams : params.copy();
