@@ -289,7 +289,8 @@ public class Http {
 		} else {
 			Auth.AuthOptions options = null;
 			if (renew) {
-				options = new Auth.AuthOptions();
+				/* Get a copy of current auth options and set the force option. */
+				options = auth.getAuthOptions();
 				options.force = true;
 			}
 
