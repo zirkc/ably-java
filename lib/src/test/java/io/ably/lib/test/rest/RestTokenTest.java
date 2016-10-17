@@ -29,6 +29,8 @@ public class RestTokenTest {
 		permitAll = capability.toString();
 		TestVars testVars = Setup.getTestVars();
 		ClientOptions opts = testVars.createOptions(testVars.keys[0].keyStr);
+		/* Use server time for all queries, but especially for authtime2 test. */
+		opts.queryTime = true;
 		ably = new AblyRest(opts);
 		long timeFromService = ably.time();
 		timeOffset = timeFromService - System.currentTimeMillis();
@@ -113,9 +115,7 @@ public class RestTokenTest {
 	public void authtime2() {
 		try {
 			long requestTime = timeOffset + System.currentTimeMillis();
-			AuthOptions authOptions = new AuthOptions();
-			authOptions.queryTime = true;
-			TokenDetails tokenDetails = ably.auth.requestToken(null, authOptions);
+			TokenDetails tokenDetails = ably.auth.requestToken(null, null);
 			assertNotNull("Expected token value", tokenDetails.token);
 			assertTrue("Unexpected issued time", (tokenDetails.issued >= (requestTime - 1000)) && (tokenDetails.issued <= (requestTime + 1000)));
 			assertEquals("Unexpected expires time", tokenDetails.expires, tokenDetails.issued + 60*60*1000);
