@@ -11,6 +11,7 @@ allprojects {
   group = 'io.ably'
 
   repositories {
+      mavenLocal()
       jcenter()
       maven { url "https://raw.github.com/paddybyers/Java-WebSocket/mvn-repo/" }
   }

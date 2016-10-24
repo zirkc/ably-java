@@ -3,4 +3,5 @@ include 'lib', 'java'
 
 if(System.getenv('ANDROID_HOME')) {
   include 'android'
+  include 'android-test'
 }
