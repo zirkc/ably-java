@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -26,10 +27,7 @@ import static org.junit.Assert.fail;
 public class RealtimeReauthTest {
 
 	/**
-	 * RTC8 (0.8 spec with 0.9 removal of AuthOptions.force)
-	 *  If authorize is called
-	 *  the client will obtain a new token, disconnect the current transport
-	 *  and resume the connection
+	 * RTC8a: In-place reauthorization on a connected connection.
 	 */
 	@Test
 	public void reauth_tokenDetails() {
@@ -91,19 +89,13 @@ public class RealtimeReauthTest {
 			assertNotNull("Expected token value", secondToken.token);
 
 			/* reauthorize */
+			connectionWaiter.reset();
 			Auth.AuthOptions authOptions = new Auth.AuthOptions();
 			authOptions.key = optsTestVars.keys[0].keyStr;
 			authOptions.tokenDetails = secondToken;
 			Auth.TokenDetails reauthTokenDetails = ablyRealtime.auth.authorize(null, authOptions);
 			assertNotNull("Expected token value", reauthTokenDetails.token);
 			System.out.println("done reauthorize");
-			/* Delay 2s to allow connection to go disconnected (and probably
-			 * then onto connecting and connected). This is a workaround for
-			 * https://github.com/ably/ably-java/issues/180 */
-			try {
-				Thread.sleep(2000);
-			} catch (Exception e) {
-			}
 
 			/* re-attach to the channel */
 			waiter = new Helpers.CompletionWaiter();
@@ -114,6 +106,8 @@ public class RealtimeReauthTest {
 			waiter.waitFor();
 			System.out.println("waited for attach");
 			assertThat(waiter.success, is(true));
+			/* Verify that the connection never disconnected (0.9 in-place authorization) */
+			assertTrue("Expected in-place authorization", connectionWaiter.getCount(ConnectionState.connecting) == 0);
 		} catch (AblyException e) {
 			e.printStackTrace();
 			fail();
