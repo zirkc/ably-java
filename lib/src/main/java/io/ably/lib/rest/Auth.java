@@ -409,7 +409,7 @@ public class Auth {
 		TokenDetails tokenDetails = tokenAuth.authorize(options, params);
 
 		if (force)
-			ably.onAuthUpdated();
+			ably.onAuthUpdated(tokenDetails.token);
 		return tokenDetails;
 	}
 
