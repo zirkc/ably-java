@@ -65,11 +65,6 @@ public class Auth {
 		public String authUrl;
 
 		/**
-		 * When true, indicates that a new token should be requested
-		 */
-		public boolean force;
-
-		/**
 		 * Full Ably key string as obtained from dashboard.
 		 */
 		public String key;
@@ -147,8 +142,8 @@ public class Auth {
 
 		/**
 		 * Stores the AuthOptions arguments as defaults for subsequent authorizations
-		 * with the exception of the attributes {@link AuthOptions#queryTime}
-		 * and {@link AuthOptions#force}
+		 * with the exception of the attributes {@link AuthOptions#timeStamp} and
+		 * {@link AuthOptions#queryTime}
 		 * <p>
 		 * Spec: RSA10g
 		 * </p>
@@ -180,7 +175,6 @@ public class Auth {
 			result.tokenDetails = this.tokenDetails;
 			result.authCallback = this.authCallback;
 			result.queryTime = this.queryTime;
-			result.force = this.force;
 			return result;
 		}
 	}
@@ -409,6 +403,21 @@ public class Auth {
 	 * @param options
 	 */
 	public TokenDetails authorize(TokenParams params, AuthOptions options) throws AblyException {
+		return authorize(params, options, true);
+	}
+
+	/**
+	 * Alias of authorize() (0.9 RSA10l)
+	 */
+	public TokenDetails authorise(TokenParams params, AuthOptions options) throws AblyException {
+		Log.w(TAG, "authorise() alias will be removed in 1.0");
+		return authorize(params, options);
+	}
+
+	/**
+	 * Internal authorize() where the third param chooses whether to force reauthorization.
+	 */
+	public TokenDetails authorize(TokenParams params, AuthOptions options, boolean force) throws AblyException {
 		/* To avoid breaking compatibility in 0.8 versions of the library, merge
 		 * supplied options and params with stored defaults. This needs to be
 		 * removed in 0.9 to comply with RSA10j. */
@@ -425,24 +434,13 @@ public class Auth {
 		options = (options == null) ? this.authOptions : options.copy();
 		params = (params == null) ? this.tokenParams : params.copy();
 
+		if (force)
+			tokenAuth.clear();
 		TokenDetails tokenDetails = tokenAuth.authorize(options, params);
 
-		/* RTC8
-		 *  If authorize is called with AuthOptions#force set to true
-		 *  the client will obtain a new token, disconnect the current transport
-		 *  and resume the connection
-		 */
-		if (options != null && options.force)
+		if (force)
 			ably.onAuthUpdated();
 		return tokenDetails;
-	}
-
-	/**
-	 * Alias of authorize() (0.9 RSA10l)
-	 */
-	public TokenDetails authorise(TokenParams params, AuthOptions options) throws AblyException {
-		Log.w(TAG, "authorise() alias will be removed in 1.0");
-		return authorize(params, options);
 	}
 
 	/**
@@ -669,7 +667,7 @@ public class Auth {
 			params = new Param[]{new Param("key", authOptions.key) };
 			break;
 		case token:
-			authorize(null, null);
+			authorize(null, null, false);
 			params = new Param[]{new Param("access_token", tokenAuth.getTokenDetails().token) };
 			break;
 		}

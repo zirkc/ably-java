@@ -40,10 +40,8 @@ public class TokenAuth {
 		Log.i("TokenAuth.authorize()", "");
 		if(tokenDetails != null) {
 			if(tokenDetails.expires == 0 || tokenValid(tokenDetails)) {
-				if(options == null || !options.force) {
-					Log.i("TokenAuth.authorize()", "using cached token; expires = " + tokenDetails.expires);
-					return tokenDetails;
-				}
+				Log.i("TokenAuth.authorize()", "using cached token; expires = " + tokenDetails.expires);
+				return tokenDetails;
 			} else {
 				/* expired, so remove */
 				Log.i("TokenAuth.authorize()", "deleting expired token");
