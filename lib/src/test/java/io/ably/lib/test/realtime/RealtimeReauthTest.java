@@ -76,6 +76,10 @@ public class RealtimeReauthTest {
 			assertEquals("Verify error code 40160 (channel is denied access)", error.code, 40160);
 			System.out.println("can't attach");
 
+			/* RTC8a1: A test should exist that performs an upgrade of
+			 * capabilities without any loss of continuity or connectivity
+			 * during the upgrade process. */
+
 			/* get second token */
 			tokenParams = new Auth.TokenParams();
 			capability = new Capability();
@@ -108,6 +112,32 @@ public class RealtimeReauthTest {
 			assertThat(waiter.success, is(true));
 			/* Verify that the connection never disconnected (0.9 in-place authorization) */
 			assertTrue("Expected in-place authorization", connectionWaiter.getCount(ConnectionState.connecting) == 0);
+
+			/* RTC8a2: Another test should exist where the capabilities are
+			 * downgraded resulting in Ably sending an ERROR ProtocolMessage
+			 * with a channel property, causing the channel to enter the FAILED
+			 * state. That test must assert that the channel becomes failed
+			 * soon after the token update and the reason is included in the
+			 * channel state change event. */
+
+			/* reauthorize */
+			System.out.println("Switching back to first token");
+			connectionWaiter.reset();
+			authOptions = new Auth.AuthOptions();
+			authOptions.key = optsTestVars.keys[0].keyStr;
+			authOptions.tokenDetails = firstToken;
+			reauthTokenDetails = ablyRealtime.auth.authorize(null, authOptions);
+			assertNotNull("Expected token value", reauthTokenDetails.token);
+			System.out.println("done reauthorize 2");
+
+			/* Sleep to allow for server error message. */
+			try {
+				Thread.sleep(4000);
+			} catch (Exception e) {
+			}
+
+
+
 		} catch (AblyException e) {
 			e.printStackTrace();
 			fail();
