@@ -426,6 +426,11 @@ public class Http {
 			conn.setRequestProperty(HttpUtils.X_ABLY_VERSION_HEADER, HttpUtils.X_ABLY_VERSION_VALUE);
 			conn.setRequestProperty(HttpUtils.X_ABLY_LIB_HEADER, HttpUtils.X_ABLY_LIB_VALUE);
 
+			Log.v(TAG, "HTTP request: " + conn.getURL() + " " + method);
+			Map<String, List<String>> props = conn.getRequestProperties();
+			for (Map.Entry<String, List<String>> entry : props.entrySet())
+				for (String val : entry.getValue())
+					Log.v(TAG, "  " + entry.getKey() + ": " + val);
 			/* send request body */
 			if(requestBody != null) {
 				writeRequestBody(requestBody, conn);
@@ -582,6 +587,7 @@ public class Http {
 		conn.setRequestProperty(CONTENT_TYPE, requestBody.getContentType());
 		conn.setRequestProperty(CONTENT_LENGTH, Integer.toString(length));
 		OutputStream os = conn.getOutputStream();
+		Log.v(TAG, "\n" + new String(body));
 		os.write(body);
 	}
 
@@ -597,12 +603,15 @@ public class Http {
 		response.statusLine = connection.getResponseMessage();
 
 		/* Store all header field names in lower-case to eliminate case insensitivity */
+		Log.v(TAG, "HTTP response:");
 		Map<String, List<String>> caseSensitiveHeaders = connection.getHeaderFields();
 		response.headers = new HashMap<>(caseSensitiveHeaders.size(), 1f);
 
 		for (Map.Entry<String, List<String>> entry : caseSensitiveHeaders.entrySet()) {
 			if (entry.getKey() != null) {
 				response.headers.put(entry.getKey().toLowerCase(), entry.getValue());
+				for (String val : entry.getValue())
+					Log.v(TAG, entry.getKey() + ": " + val);
 			}
 		}
 
@@ -618,6 +627,7 @@ public class Http {
 
 		try {
 			response.body = readInputStream(is, response.contentLength);
+			Log.v(TAG, "\n" + new String(response.body));
 		} catch (NullPointerException e) {
 			/* nothing to read */
 		} finally {
