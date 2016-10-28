@@ -326,34 +326,30 @@ public class ConnectionManager implements Runnable, ConnectListener {
 	 */
 	public void onAuthUpdated(String token) throws AblyException {
 		ConnectionWaiter waiter = new ConnectionWaiter(connection);
-		switch (state.state){
-			case connected:
-				/* (RTC8a) If the connection is in the CONNECTED state and
-				 * auth.authorize is called or Ably requests a re-authentication
-				 * (see RTN22), the client must obtain a new token, then send an
-				 * AUTH ProtocolMessage to Ably with an auth attribute
-				 * containing an AuthDetails object with the token string. */
-				try {
-					ProtocolMessage msg = new ProtocolMessage(ProtocolMessage.Action.auth);
-					msg.auth = new ProtocolMessage.AuthDetails(token);
-					send(msg, false, null);
-				} catch (AblyException e) {
-					/* The send failed. Close the transport; if a subsequent
-					 * reconnect succeeds, it will be with the new token. */
-					Log.v(TAG, "onAuthUpdated: closing transport after send failure");
-					transport.close(/*sendDisconnect=*/false);
-				}
-				break;
-			case connecting:
-				/* Close the connecting transport; a subsequent reconnect will
-				 * be with the new token. */
+		if (state.state == ConnectionState.connected) {
+			/* (RTC8a) If the connection is in the CONNECTED state and
+			 * auth.authorize is called or Ably requests a re-authentication
+			 * (see RTN22), the client must obtain a new token, then send an
+			 * AUTH ProtocolMessage to Ably with an auth attribute
+			 * containing an AuthDetails object with the token string. */
+			try {
+				ProtocolMessage msg = new ProtocolMessage(ProtocolMessage.Action.auth);
+				msg.auth = new ProtocolMessage.AuthDetails(token);
+				send(msg, false, null);
+			} catch (AblyException e) {
+				/* The send failed. Close the transport; if a subsequent
+				 * reconnect succeeds, it will be with the new token. */
+				Log.v(TAG, "onAuthUpdated: closing transport after send failure");
+				transport.close(/*sendDisconnect=*/false);
+			}
+		} else {
+			if (state.state == ConnectionState.connecting) {
+				/* Close the connecting transport. */
 				Log.v(TAG, "onAuthUpdated: closing connecting transport");
 				transport.close(/*sendDisconnect=*/false);
-				break;
-			default:
-				/* Start a new connection attempt. */
-				requestState(new StateIndication(ConnectionState.connecting, null));
-				break;
+			}
+			/* Start a new connection attempt. */
+			requestState(new StateIndication(ConnectionState.connecting, null));
 		}
 		/* Wait for a state transition into anything other than connecting or
 		 * disconnected. Note that this includes the case that the connection
