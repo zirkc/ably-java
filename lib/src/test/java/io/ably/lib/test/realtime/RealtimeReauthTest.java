@@ -120,12 +120,23 @@ public class RealtimeReauthTest {
 			 * soon after the token update and the reason is included in the
 			 * channel state change event. */
 
+			/* get third token */
+			tokenParams = new Auth.TokenParams();
+			capability = new Capability();
+			capability.addResource(wrongChannel, "*");
+			capability.addResource(rightChannel, "*");
+			tokenParams.capability = capability.toString();
+			tokenParams.clientId = testClientId;
+			System.out.println("got second token");
+			Auth.TokenDetails thirdToken = ablyForToken.auth.requestToken(tokenParams, null);
+			assertNotNull("Expected token value", thirdToken.token);
+
 			/* reauthorize */
-			System.out.println("Switching back to first token");
+			System.out.println("Switching to third token");
 			connectionWaiter.reset();
 			authOptions = new Auth.AuthOptions();
 			authOptions.key = optsTestVars.keys[0].keyStr;
-			authOptions.tokenDetails = firstToken;
+			authOptions.tokenDetails = thirdToken;
 			reauthTokenDetails = ablyRealtime.auth.authorize(null, authOptions);
 			assertNotNull("Expected token value", reauthTokenDetails.token);
 			System.out.println("done reauthorize 2");
