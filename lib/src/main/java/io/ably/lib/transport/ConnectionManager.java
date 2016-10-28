@@ -234,24 +234,18 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		Log.v(TAG, "setState(): setting " + newState.state);
 		ConnectionStateListener.ConnectionStateChange change;
 		StateInfo newStateInfo = states.get(newState.state);
-		boolean stateChanged;
 		synchronized(this) {
 			ErrorInfo reason = newState.reason; if(reason == null) reason = newStateInfo.defaultErrorInfo;
 			change = new ConnectionStateListener.ConnectionStateChange(state.state, newState.state, newStateInfo.timeout, reason);
 			newStateInfo.host = newState.currentHost;
-			stateChanged = state.state != newStateInfo.state;
 			state = newStateInfo;
 		}
 
 		/* broadcast state change */
 		connection.onConnectionStateChange(change);
 
-		/* if moved to connected, send queued messages, etc. (The requirement
-		 * for the state to have actually changed is so we do not do anything
-		 * on a connected message that results from in-place authorization. */
-		if(!stateChanged)
-			return;
-		if (state.sendEvents) {
+		/* if now connected, send queued messages, etc */
+		if(state.sendEvents) {
 			sendQueuedMessages();
 			for(Channel channel : ably.channels.values())
 				channel.setConnected();
