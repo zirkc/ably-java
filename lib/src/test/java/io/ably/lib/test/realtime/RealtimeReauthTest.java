@@ -125,10 +125,8 @@ public class RealtimeReauthTest {
 	 * state. That test must assert that the channel becomes failed
 	 * soon after the token update and the reason is included in the
 	 * channel state change event.
-	 *
-	 * DISABLED: see comment at the bottom of the test.
 	 */
-	/*@Test*/
+	@Test
 	public void reauth_downgrade() {
 		String wrongChannel = "wrongchannel";
 		String rightChannel = "rightchannel";
@@ -184,8 +182,8 @@ public class RealtimeReauthTest {
 			capability.addResource(wrongChannel, "*");
 			tokenParams.capability = capability.toString();
 			tokenParams.clientId = testClientId;
-			System.out.println("got second token");
 			Auth.TokenDetails secondToken = ablyForToken.auth.requestToken(tokenParams, null);
+			System.out.println("got second token");
 			assertNotNull("Expected token value", secondToken.token);
 
 			/* reauthorize */
@@ -203,6 +201,7 @@ public class RealtimeReauthTest {
 			 * 2. The server does not seem to send an error message for the
 			 *    channel on reauth anyway.
 			 */
+			try { Thread.sleep(5000); } catch(InterruptedException e){}
 
 		} catch (AblyException e) {
 			e.printStackTrace();
