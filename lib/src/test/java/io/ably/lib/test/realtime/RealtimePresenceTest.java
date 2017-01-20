@@ -2788,6 +2788,7 @@ public class RealtimePresenceTest extends ParameterizedTest {
 
 	/**
 	 * Enter wrong client (mismatching one set in the token), check exception
+	 * Tests RTP15d
 	 */
 	@Test
 	public void presence_enter_mismatched_clientid() throws AblyException {
@@ -2811,7 +2812,6 @@ public class RealtimePresenceTest extends ParameterizedTest {
 			assertNotNull("Expected token value", token.token);
 
 			ClientOptions opts = createOptions();
-			opts.clientId = testClientId1;
 			opts.tokenDetails = token;
 			ably = new AblyRealtime(opts);
 
@@ -2946,7 +2946,7 @@ public class RealtimePresenceTest extends ParameterizedTest {
 
 	/*
 	 * Verify presence data is received and encoded/decoded correctly
-	 * Tests RTP8e
+	 * Tests RTP8e, RTP15a, RTP15b
 	 */
 	@Test
 	public void presence_encoding() throws AblyException, InterruptedException {
@@ -2963,11 +2963,15 @@ public class RealtimePresenceTest extends ParameterizedTest {
 
 			channel2.attach();
 			new ChannelWaiter(channel2).waitFor(ChannelState.attached);
+
 			final ArrayList<Object> receivedPresenceData = new ArrayList<>();
+			final ArrayList<PresenceMessage.Action> receivedPresenceActions = new ArrayList<>();
+
 			channel2.presence.subscribe(new Presence.PresenceListener() {
 				@Override
 				public void onPresenceMessage(PresenceMessage messages) {
 					synchronized (receivedPresenceData) {
+						receivedPresenceActions.add(messages.action);
 						receivedPresenceData.add(messages.data);
 						receivedPresenceData.notify();
 					}
@@ -2986,6 +2990,10 @@ public class RealtimePresenceTest extends ParameterizedTest {
 					receivedPresenceData.wait();
 			}
 
+			assertTrue("Verify presence message actions",
+					receivedPresenceActions.get(0) == Action.enter &&
+							receivedPresenceActions.get(1) == Action.enter &&
+							receivedPresenceActions.get(2) == Action.enter);
 			assertEquals("Verify number of received presence messages", receivedPresenceData.size(), 3);
 			assertEquals("Verify string data", receivedPresenceData.get(0), testStringData);
 			assertTrue("Verify byte[] data",
@@ -3003,9 +3011,22 @@ public class RealtimePresenceTest extends ParameterizedTest {
 					receivedPresenceData.wait();
 			}
 
+			assertTrue("Verify presence message actions",
+					receivedPresenceActions.get(3) == Action.leave &&
+							receivedPresenceActions.get(4) == Action.leave);
 			assertEquals("Verify string data for enter message is used in leave message", receivedPresenceData.get(3), testStringData);
 			assertEquals("Verify overridden leave data", receivedPresenceData.get(4), "leave");
 
+			/* test updateClient() */
+			channel1.presence.updateClient("3", testStringData);
+
+			synchronized (receivedPresenceData) {
+				while (receivedPresenceData.size() < 6)
+					receivedPresenceData.wait();
+			}
+			assertTrue("Verify presence message actions",
+					receivedPresenceActions.get(5) == Action.update);
+			assertEquals("Verify updateClient() caused presence event", receivedPresenceData.get(5), testStringData);
 		} finally {
 			if (ably1 != null)
 				ably1.close();
