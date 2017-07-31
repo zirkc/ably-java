@@ -138,16 +138,6 @@ public class Crypto {
 		return params;
 	}
 
-	public static byte[] generateRandomKey(int keyLength) {
-		byte[] result = new byte[(keyLength + 7)/8];
-		secureRandom.nextBytes(result);
-		return result;
-	}
-
-	public static byte[] generateRandomKey() {
-		return generateRandomKey(DEFAULT_KEYLENGTH);
-	}
-
 	/**
 	 * Interface for a ChannelCipher instance that may be associated with a Channel.
 	 *
