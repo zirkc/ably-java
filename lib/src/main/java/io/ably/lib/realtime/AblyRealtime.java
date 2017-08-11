@@ -89,7 +89,9 @@ public class AblyRealtime extends AblyRest {
 			connection.on(ConnectionEvent.closed, new ConnectionStateListener() {
 				@Override
 				public void onConnectionStateChanged(ConnectionStateListener.ConnectionStateChange state) {
-					Channels.this.clear();
+					synchronized(Channels.this) {
+						Channels.this.clear();
+					}
 				}
 			});
 		}
@@ -100,7 +102,7 @@ public class AblyRealtime extends AblyRest {
 		 * @param channelName the name of the channel
 		 * @return the channel
 		 */
-		public Channel get(String channelName) {
+		public synchronized Channel get(String channelName) {
 			Channel channel = super.get(channelName);
 			if(channel == null) {
 				channel = new Channel(AblyRealtime.this, channelName);
@@ -117,7 +119,7 @@ public class AblyRealtime extends AblyRest {
 		 * @return the channel
 		 * @throws AblyException
 		 */
-		public Channel get(String channelName, ChannelOptions channelOptions) throws AblyException {
+		public synchronized Channel get(String channelName, ChannelOptions channelOptions) throws AblyException {
 			Channel channel = get(channelName);
 			channel.setOptions(channelOptions);
 			return channel;
@@ -129,7 +131,7 @@ public class AblyRealtime extends AblyRest {
 		 * This silently does nothing if the channel does not already exist.
 		 * @param channelName
 		 */
-		public void release(String channelName) {
+		public synchronized void release(String channelName) {
 			Channel channel = remove(channelName);
 			if(channel != null) {
 				try {
@@ -142,8 +144,7 @@ public class AblyRealtime extends AblyRest {
 
 		public void onChannelMessage(ITransport transport, ProtocolMessage msg) {
 			String channelName = msg.channel;
-			Channel channel;
-			synchronized(this) { channel = channels.get(channelName); }
+			Channel channel = channels.get(channelName);
 			if(channel == null) {
 				Log.e(TAG, "Received channel message for non-existent channel");
 				return;
@@ -151,10 +152,31 @@ public class AblyRealtime extends AblyRest {
 			channel.onChannelMessage(msg);
 		}
 
-		public void suspendAll(ErrorInfo error) {
+		public synchronized void setSuspended(ErrorInfo error) {
 			for(Iterator<Map.Entry<String, Channel>> it = entrySet().iterator(); it.hasNext(); ) {
 				Map.Entry<String, Channel> entry = it.next();
 				entry.getValue().setSuspended(error);
+			}
+		}
+
+		public synchronized void setConnectionClosed(ErrorInfo error) {
+			for(Iterator<Map.Entry<String, Channel>> it = entrySet().iterator(); it.hasNext(); ) {
+				Map.Entry<String, Channel> entry = it.next();
+				entry.getValue().setConnectionClosed(error);
+			}
+		}
+
+		public synchronized void setConnectionFailed(ErrorInfo error) {
+			for(Iterator<Map.Entry<String, Channel>> it = entrySet().iterator(); it.hasNext(); ) {
+				Map.Entry<String, Channel> entry = it.next();
+				entry.getValue().setConnectionFailed(error);
+			}
+		}
+
+		public synchronized void setConnected() {
+			for(Iterator<Map.Entry<String, Channel>> it = entrySet().iterator(); it.hasNext(); ) {
+				Map.Entry<String, Channel> entry = it.next();
+				entry.getValue().setConnected();
 			}
 		}
 	}

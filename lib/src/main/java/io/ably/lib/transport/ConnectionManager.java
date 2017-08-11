@@ -242,38 +242,38 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		/* if now connected, send queued messages, etc */
 		if(state.sendEvents) {
 			sendQueuedMessages();
-			for(Channel channel : ably.channels.values())
-				channel.setConnected();
+			ably.channels.setConnected();
 		} else { 
-			if(!state.queueEvents)
+			if(!state.queueEvents) {
 				failQueuedMessages(state.defaultErrorInfo);
-			for(Channel channel : ably.channels.values()) {
-				switch (state.state) {
-					case disconnected:
-						/* (RTL3e) If the connection state enters the
-						 * DISCONNECTED state, it will have no effect on the
-						 * channel states. */
-						break;
-					case failed:
-						/* (RTL3a) If the connection state enters the FAILED
-						 * state, then an ATTACHING or ATTACHED channel state
-						 * will transition to FAILED, set the
-						 * Channel#errorReason and emit the error event. */
-						channel.setConnectionFailed(change.reason);
-						break;
-					case closed:
-						/* (RTL3b) If the connection state enters the CLOSED
-						 * state, then an ATTACHING or ATTACHED channel state
-						 * will transition to DETACHED. */
-						channel.setConnectionClosed(state.defaultErrorInfo);
-						break;
-					case suspended:
-						/* (RTL3c) If the connection state enters the SUSPENDED
-						 * state, then an ATTACHING or ATTACHED channel state
-						 * will transition to SUSPENDED. */
-						channel.setSuspended(state.defaultErrorInfo);
-						break;
-				}
+			}
+			switch (state.state) {
+				case disconnected:
+					/* (RTL3e) If the connection state enters the
+					 * DISCONNECTED state, it will have no effect on the
+					 * channel states. */
+					break;
+				case failed:
+					/* (RTL3a) If the connection state enters the FAILED
+					 * state, then an ATTACHING or ATTACHED channel state
+					 * will transition to FAILED, set the
+					 * Channel#errorReason and emit the error event. */
+					ably.channels.setConnectionFailed(change.reason);
+					break;
+				case closed:
+					/* (RTL3b) If the connection state enters the CLOSED
+					 * state, then an ATTACHING or ATTACHED channel state
+					 * will transition to DETACHED. */
+					ably.channels.setConnectionClosed(state.defaultErrorInfo);
+					break;
+				case suspended:
+					/* (RTL3c) If the connection state enters the SUSPENDED
+					 * state, then an ATTACHING or ATTACHED channel state
+					 * will transition to SUSPENDED. */
+					ably.channels.setSuspended(state.defaultErrorInfo);
+					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -522,7 +522,7 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		 * remove all channels attached to the previous id */
 		ErrorInfo error = message.error;
 		if(error != null && !message.connectionId.equals(connection.id))
-			ably.channels.suspendAll(error);
+			ably.channels.setSuspended(error);
 
 		/* set the new connection id */
 		ConnectionDetails connectionDetails = message.connectionDetails;
