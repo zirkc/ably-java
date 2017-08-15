@@ -637,7 +637,7 @@ public class Presence {
 
 		AblyRealtime ably = channel.ably;
 		BodyHandler<PresenceMessage> bodyHandler = PresenceSerializer.getPresenceResponseHandler(channel.options);
-		return new PaginatedQuery<>(ably.http, channel.basePath + "/presence/history", HttpUtils.defaultAcceptHeaders(ably.options.useBinaryProtocol), params, bodyHandler).get();
+		return new PaginatedQuery<>(ably.http, channel.basePath + "/presence/history", HttpUtils.defaultAcceptHeaders(ably.options.protocolFormat), params, bodyHandler).get();
 	}
 
 	/**

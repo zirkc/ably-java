@@ -48,7 +48,7 @@ public interface ITransport {
 		public Param[] getConnectParams(Param[] baseParams) {
 			List<Param> paramList = new ArrayList<Param>(Arrays.asList(baseParams));
 			paramList.add(new Param(Defaults.ABLY_VERSION_PARAM, Defaults.ABLY_VERSION));
-			paramList.add(new Param("format", (options.useBinaryProtocol ? "msgpack" : "json")));
+			paramList.add(new Param("format", options.protocolFormat.name()));
 			if(!options.echoMessages)
 				paramList.add(new Param("echo", "false"));
 			if(connectionKey != null) {

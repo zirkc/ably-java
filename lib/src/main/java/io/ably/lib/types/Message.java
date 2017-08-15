@@ -13,12 +13,13 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import io.ably.lib.util.Log;
+import io.ably.lib.util.Msgpack.MsgpackEncodable;
 
 /**
  * A class representing an individual message to be sent or received
  * via the Ably Realtime service.
  */
-public class Message extends BaseMessage {
+public class Message extends BaseMessage implements MsgpackEncodable<Message> {
 
 	/**
 	 * The event name, if available
@@ -63,7 +64,11 @@ public class Message extends BaseMessage {
 		return result.toString();
 	}
 
-	void writeMsgpack(MessagePacker packer) throws IOException {
+	/**********************
+	 * msgack serialisation
+	 **********************/
+
+	public void writeMsgpack(MessagePacker packer) throws IOException {
 		int fieldCount = super.countFields();
 		if(name != null) ++fieldCount;
 		packer.packMapHeader(fieldCount);
@@ -74,7 +79,7 @@ public class Message extends BaseMessage {
 		}
 	}
 
-	Message readMsgpack(MessageUnpacker unpacker) throws IOException {
+	public Message readMsgpack(MessageUnpacker unpacker) throws IOException {
 		int fieldCount = unpacker.unpackMapHeader();
 		for(int i = 0; i < fieldCount; i++) {
 			String fieldName = unpacker.unpackString().intern();
@@ -92,9 +97,9 @@ public class Message extends BaseMessage {
 		return this;
 	}
 
-	static Message fromMsgpack(MessageUnpacker unpacker) throws IOException {
-		return (new Message()).readMsgpack(unpacker);
-	}
+	/**********************
+	 *  json serialisation
+	 **********************/
 
 	public static class Serializer extends BaseMessage.Serializer implements JsonSerializer<Message> {
 		@Override

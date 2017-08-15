@@ -19,8 +19,8 @@ public class ParameterizedTest {
 	@Parameters(name = "{0}")
 	public static Iterable<Setup.TestParameters> data() {
 		return Arrays.asList(
-				Setup.TestParameters.TEXT,
-				Setup.TestParameters.BINARY
+				Setup.TestParameters.JSON,
+				Setup.TestParameters.MSGPACK
 			);
 	}
 

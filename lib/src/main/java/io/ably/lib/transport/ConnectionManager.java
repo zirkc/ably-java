@@ -11,7 +11,6 @@ import io.ably.lib.types.ConnectionDetails;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.ProtocolMessage;
 import io.ably.lib.types.ProtocolMessage.Action;
-import io.ably.lib.types.ProtocolSerializer;
 import io.ably.lib.util.Log;
 
 import java.util.ArrayList;
@@ -442,7 +441,7 @@ public class ConnectionManager implements Runnable, ConnectListener {
 		if (transport != null && this.transport != transport)
 			return;
 		if (Log.level <= Log.VERBOSE)
-			Log.v(TAG, "onMessage(): " + message.action + ": " + new String(ProtocolSerializer.writeJSON(message)));
+			Log.v(TAG, "onMessage(): " + message.toString());
 		try {
 			if(protocolListener != null)
 				protocolListener.onRawMessageRecv(message);

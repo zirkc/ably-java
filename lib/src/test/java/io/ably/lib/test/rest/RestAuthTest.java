@@ -41,6 +41,8 @@ import io.ably.lib.rest.Channel;
 import io.ably.lib.test.common.ParameterizedTest;
 import io.ably.lib.test.common.Helpers.RawHttpTracker;
 import io.ably.lib.test.util.TokenServer;
+import io.ably.lib.types.Message;
+import io.ably.lib.util.Codec;
 
 public class RestAuthTest extends ParameterizedTest {
 
@@ -1375,15 +1377,9 @@ public class RestAuthTest extends ParameterizedTest {
 					public void onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
 							Map<String, List<String>> requestHeaders, RequestBody requestBody) {
 						try {
-							if(testParams.useBinaryProtocol) {
-								messages[0] = MessageSerializer.readMsgpack(requestBody.getEncoded())[0];
-							} else {
-								messages[0] = MessageSerializer.readJSON(requestBody.getEncoded())[0];
-							}
+							Codec<Message> codec = Codec.get(testParams.protocolFormat, Message.class);
+							messages[0] = codec.decodeFromRequestBody(requestBody);
 						} catch (AblyException e) {
-							e.printStackTrace();
-							fail("auth_clientid_publish_implicit: Unexpected exception");
-						} catch (IOException e) {
 							e.printStackTrace();
 							fail("auth_clientid_publish_implicit: Unexpected exception");
 						}
@@ -1442,15 +1438,9 @@ public class RestAuthTest extends ParameterizedTest {
 					public void onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
 							Map<String, List<String>> requestHeaders, RequestBody requestBody) {
 						try {
-							if(testParams.useBinaryProtocol) {
-								messages[0] = MessageSerializer.readMsgpack(requestBody.getEncoded())[0];
-							} else {
-								messages[0] = MessageSerializer.readJSON(requestBody.getEncoded())[0];
-							}
+							Codec<Message> codec = Codec.get(testParams.protocolFormat, Message.class);
+							messages[0] = codec.decodeFromRequestBody(requestBody);
 						} catch (AblyException e) {
-							e.printStackTrace();
-							fail("auth_clientid_publish_implicit: Unexpected exception");
-						} catch (IOException e) {
 							e.printStackTrace();
 							fail("auth_clientid_publish_implicit: Unexpected exception");
 						}

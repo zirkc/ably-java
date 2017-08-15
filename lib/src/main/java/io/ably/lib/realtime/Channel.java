@@ -865,7 +865,7 @@ public class Channel extends EventEmitter<ChannelEvent, ChannelStateListener> {
 		params = replacePlaceholderParams(this, params);
 
 		BodyHandler<Message> bodyHandler = MessageSerializer.getMessageResponseHandler(options);
-		return new PaginatedQuery<>(ably.http, basePath + "/history", HttpUtils.defaultAcceptHeaders(ably.options.useBinaryProtocol), params, bodyHandler).get();
+		return new PaginatedQuery<>(ably.http, basePath + "/history", HttpUtils.defaultAcceptHeaders(ably.options.protocolFormat), params, bodyHandler).get();
 	}
 
 	/************************************

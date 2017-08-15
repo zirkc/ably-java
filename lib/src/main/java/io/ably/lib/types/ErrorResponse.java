@@ -1,6 +1,6 @@
 package io.ably.lib.types;
 
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 public class ErrorResponse {
 	public ErrorInfo error;
@@ -12,7 +12,7 @@ public class ErrorResponse {
 	 * @throws AblyException
 	 */
 	public static ErrorResponse fromJSON(String jsonText) throws AblyException {
-		ErrorResponse errorResponse = (ErrorResponse)Serialisation.gson.fromJson(jsonText, ErrorResponse.class);
+		ErrorResponse errorResponse = (ErrorResponse)Json.gson.fromJson(jsonText, ErrorResponse.class);
 		return errorResponse;
 	}
 }

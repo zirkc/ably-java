@@ -480,7 +480,7 @@ public class RestRequestTest extends ParameterizedTest {
 
 			/* publish a message */
 			Message message = new Message("Test event", messageData);
-			JsonRequestBody requestBody = new JsonRequestBody(message);
+			JsonRequestBody requestBody = JsonRequestBody.create(message);
 			HttpPaginatedResponse publishResponse = ably.request(Http.POST, channelMessagesPath, null, requestBody, null);
 			RawHttpRequest req = httpListener.getLastRequest();
 
@@ -533,7 +533,7 @@ public class RestRequestTest extends ParameterizedTest {
 
 			/* publish a message */
 			Message message = new Message("Test event", messageData);
-			JsonRequestBody requestBody = new JsonRequestBody(message);
+			JsonRequestBody requestBody = JsonRequestBody.create(message);
 			ably.requestAsync(Http.POST, channelMessagesPath, null, requestBody, null, new AsyncHttpPaginatedResponse.Callback() {
 				@Override
 				public void onResponse(AsyncHttpPaginatedResponse publishResponse) {

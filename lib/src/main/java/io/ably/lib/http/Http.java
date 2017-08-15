@@ -21,8 +21,10 @@ import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.ErrorResponse;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.ProxyOptions;
+import io.ably.lib.util.Codec;
+import io.ably.lib.util.Codec.Format;
+import io.ably.lib.util.Encodable;
 import io.ably.lib.util.Log;
-import io.ably.lib.util.Serialisation;
 
 /**
  * Http
@@ -110,16 +112,32 @@ public class Http {
 	/**
 	 * A RequestBody wrapping a JSON-serialisable object
 	 */
-	public static class JsonRequestBody implements RequestBody {
-		public JsonRequestBody(String jsonText) { this.jsonText = jsonText; }
-		public JsonRequestBody(Object ob) { this(Serialisation.gson.toJson(ob)); }
+	public static class JsonRequestBody extends StringRequestBody {
+		public JsonRequestBody(String jsonText) { super(jsonText, JSON); }
+
+		@SuppressWarnings("unchecked")
+		public static <T extends Encodable> JsonRequestBody create(T obj) throws AblyException {
+			Codec<T> codec = (Codec<T>) Codec.get(Format.json, obj.getClass());
+			return new JsonRequestBody(codec.encodeToText(obj));
+		}
+	}
+
+	/**
+	 * A RequestBody wrapping a String object
+	 */
+	public static class StringRequestBody implements RequestBody {
+		public StringRequestBody(String text, String contentType) {
+			this.text = text;
+			this.contentType = contentType;
+		}
 
 		@Override
-		public byte[] getEncoded() { return (bytes != null) ? bytes : (bytes = jsonText.getBytes(Charset.forName("UTF-8"))); }
+		public byte[] getEncoded() { return (bytes != null) ? bytes : (bytes = text.getBytes(Charset.forName("UTF-8"))); }
 		@Override
-		public String getContentType() { return JSON; }
+		public String getContentType() { return contentType; }
 
-		private final String jsonText;
+		private final String text;
+		private final String contentType;
 		private byte[] bytes;
 	}
 

@@ -16,12 +16,13 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import io.ably.lib.util.Log;
+import io.ably.lib.util.Msgpack.MsgpackEncodable;
 
 /**
  * A class representing an individual presence update to be sent or received
  * via the Ably Realtime service.
  */
-public class PresenceMessage extends BaseMessage implements Cloneable {
+public class PresenceMessage extends BaseMessage implements Cloneable, MsgpackEncodable<PresenceMessage> {
 
 	/**
 	 * Presence Action: the event signified by a PresenceMessage
@@ -90,7 +91,7 @@ public class PresenceMessage extends BaseMessage implements Cloneable {
 		return result;
 	}
 
-	void writeMsgpack(MessagePacker packer) throws IOException {
+	public void writeMsgpack(MessagePacker packer) throws IOException {
 		int fieldCount = super.countFields();
 		++fieldCount;
 		packer.packMapHeader(fieldCount);
@@ -99,7 +100,7 @@ public class PresenceMessage extends BaseMessage implements Cloneable {
 		packer.packInt(action.getValue());
 	}
 
-	PresenceMessage readMsgpack(MessageUnpacker unpacker) throws IOException {
+	public PresenceMessage readMsgpack(MessageUnpacker unpacker) throws IOException {
 		int fieldCount = unpacker.unpackMapHeader();
 		for(int i = 0; i < fieldCount; i++) {
 			String fieldName = unpacker.unpackString().intern();

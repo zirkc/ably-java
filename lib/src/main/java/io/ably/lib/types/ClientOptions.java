@@ -3,6 +3,7 @@ package io.ably.lib.types;
 import io.ably.lib.rest.Auth.AuthOptions;
 import io.ably.lib.rest.Auth.TokenParams;
 import io.ably.lib.transport.Defaults;
+import io.ably.lib.util.Codec.Format;
 import io.ably.lib.util.Log;
 import io.ably.lib.util.Log.LogHandler;
 
@@ -87,11 +88,16 @@ public class ClientOptions extends AuthOptions {
 	 */
 	public boolean autoConnect = true;
 
+//	/**
+//	 * If false, forces the library to use the JSON encoding for REST and Realtime operations,
+//	 * instead of the default binary msgpack encoding.
+//	 */
+//	public boolean useBinaryProtocol = true;
+
 	/**
-	 * If false, forces the library to use the JSON encoding for REST and Realtime operations,
-	 * instead of the default binary msgpack encoding.
+	 * Format.
 	 */
-	public boolean useBinaryProtocol = true;
+	public Format protocolFormat = Format.msgpack;
 
 	/**
 	 * If false, suppresses the default queueing of messages when connection states that

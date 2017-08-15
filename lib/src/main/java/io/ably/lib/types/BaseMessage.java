@@ -18,7 +18,7 @@ import com.google.gson.JsonSerializationContext;
 import io.ably.lib.util.Base64Coder;
 import io.ably.lib.util.Crypto.ChannelCipher;
 import io.ably.lib.util.Log;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 public class BaseMessage implements Cloneable {
 	/**
@@ -92,7 +92,7 @@ public class BaseMessage implements Cloneable {
 						case "json":
 							try {
 								String jsonText = ((String)data).trim();
-								data = Serialisation.gsonParser.parse(jsonText);
+								data = Json.gsonParser.parse(jsonText);
 							} catch(JsonParseException e) {
 								throw MessageDecodeException.fromDescription("Invalid JSON data received");
 							}
@@ -122,7 +122,7 @@ public class BaseMessage implements Cloneable {
 	public void encode(ChannelOptions opts) throws AblyException {
 		if(data != null) {
 			if(data instanceof JsonElement) {
-				data = Serialisation.gson.toJson((JsonElement)data);
+				data = Json.gson.toJson((JsonElement)data);
 				encoding = ((encoding == null) ? "" : encoding + "/") + "json";
 			}
 			if(data instanceof String) {

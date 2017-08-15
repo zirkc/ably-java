@@ -18,6 +18,7 @@ import io.ably.lib.types.ChannelOptions;
 import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.util.Crypto;
+import io.ably.lib.util.Codec.Format;
 import io.ably.lib.util.Crypto.CipherParams;
 
 import java.security.NoSuchAlgorithmException;
@@ -222,7 +223,7 @@ public class RealtimeCryptoTest extends ParameterizedTest {
 			ClientOptions txOpts = createOptions(testVars.keys[0].keyStr);
 			txAbly = new AblyRealtime(txOpts);
 			ClientOptions rxOpts = createOptions(testVars.keys[0].keyStr);
-			rxOpts.useBinaryProtocol = !testParams.useBinaryProtocol;
+			rxOpts.protocolFormat = (testParams.protocolFormat.equals(Format.json) ? Format.msgpack : Format.json);
 			rxAbly = new AblyRealtime(rxOpts);
 
 			/* create a key */
@@ -451,7 +452,7 @@ public class RealtimeCryptoTest extends ParameterizedTest {
 			ClientOptions txOpts = createOptions(testVars.keys[0].keyStr);
 			txAbly = new AblyRealtime(txOpts);
 			ClientOptions rxOpts = createOptions(testVars.keys[0].keyStr);
-			rxOpts.useBinaryProtocol = !testParams.useBinaryProtocol;
+			rxOpts.protocolFormat = (testParams.protocolFormat.equals(Format.json) ? Format.msgpack : Format.json);
 			rxAbly = new AblyRealtime(rxOpts);
 
 			/* create a key */

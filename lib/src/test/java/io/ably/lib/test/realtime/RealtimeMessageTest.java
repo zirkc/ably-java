@@ -41,7 +41,9 @@ import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.ProtocolMessage;
+import io.ably.lib.util.Encodable;
 import io.ably.lib.util.Log;
+import io.ably.lib.util.Codec.Format;
 
 public class RealtimeMessageTest extends ParameterizedTest {
 
@@ -597,7 +599,7 @@ public class RealtimeMessageTest extends ParameterizedTest {
 				/* subscribe */
 				MessageWaiter messageWaiter = new MessageWaiter(channel);
 
-				ably.http.post("/channels/" + channel.name + "/messages", null, null, new Http.JsonRequestBody(fixtureMessage), null, true);
+				ably.http.post("/channels/" + channel.name + "/messages", null, null, Http.JsonRequestBody.create(fixtureMessage), null, true);
 
 				messageWaiter.waitFor(1);
 				channel.unsubscribe(messageWaiter);
@@ -649,7 +651,7 @@ public class RealtimeMessageTest extends ParameterizedTest {
 			ClientOptions jsonOpts = createOptions(testVars.keys[0].keyStr);
 
 			ClientOptions msgpackOpts = createOptions(testVars.keys[0].keyStr);
-			msgpackOpts.useBinaryProtocol = !testParams.useBinaryProtocol;
+			msgpackOpts.protocolFormat = (testParams.protocolFormat.equals(Format.json) ? Format.msgpack : Format.json);
 
 			AblyRest restPublishClient = new AblyRest(jsonOpts);
 			realtimeSubscribeClientMsgPack = new AblyRealtime(msgpackOpts);
@@ -666,7 +668,7 @@ public class RealtimeMessageTest extends ParameterizedTest {
 				for (MessagesEncodingDataItem fixtureMessage : fixtures.messages) {
 					MessageWaiter messageWaiter = new MessageWaiter(realtimeSubscribeChannel);
 
-					restPublishClient.http.post("/channels/" + realtimeSubscribeChannel.name + "/messages", null, null, new Http.JsonRequestBody(fixtureMessage), null, true);
+					restPublishClient.http.post("/channels/" + realtimeSubscribeChannel.name + "/messages", null, null, Http.JsonRequestBody.create(fixtureMessage), null, true);
 
 					messageWaiter.waitFor(1);
 					realtimeSubscribeChannel.unsubscribe(messageWaiter);
@@ -763,7 +765,7 @@ public class RealtimeMessageTest extends ParameterizedTest {
 			testData.expectedType = "binary";
 			testData.expectedHexValue = "30313233343536373839";	/* hex for "0123456789" */
 
-			restPublishClient.http.post("/channels/" + realtimeSubscribeChannelJson.name + "/messages", null, null, new Http.JsonRequestBody(testData), null, true);
+			restPublishClient.http.post("/channels/" + realtimeSubscribeChannelJson.name + "/messages", null, null, Http.JsonRequestBody.create(testData), null, true);
 
 			messageWaiter.waitFor(1);
 			realtimeSubscribeChannelJson.unsubscribe(messageWaiter);
@@ -826,7 +828,7 @@ public class RealtimeMessageTest extends ParameterizedTest {
 		public MessagesEncodingDataItem[] messages;
 	}
 
-	static class MessagesEncodingDataItem {
+	static class MessagesEncodingDataItem implements Encodable {
 		public String data;
 		public String encoding;
 		public String expectedType;

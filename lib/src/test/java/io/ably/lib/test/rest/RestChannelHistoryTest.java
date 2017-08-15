@@ -20,6 +20,7 @@ import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.Message;
 import io.ably.lib.types.PaginatedResult;
 import io.ably.lib.types.Param;
+import io.ably.lib.util.Codec.Format;
 
 public class RestChannelHistoryTest extends ParameterizedTest {
 
@@ -32,7 +33,7 @@ public class RestChannelHistoryTest extends ParameterizedTest {
 	@Before
 	public void setUpBefore() throws Exception {
 		ClientOptions opts = createOptions(testVars.keys[0].keyStr);
-		opts.useBinaryProtocol = false;
+		opts.protocolFormat = Format.json;
 		ably = new AblyRest(opts);
 		long timeFromService = ably.time();
 		timeOffset = timeFromService - System.currentTimeMillis();

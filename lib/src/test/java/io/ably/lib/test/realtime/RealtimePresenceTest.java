@@ -40,6 +40,7 @@ import io.ably.lib.test.util.MockWebsocketFactory;
 import io.ably.lib.transport.ConnectionManager;
 import io.ably.lib.transport.Defaults;
 import io.ably.lib.types.PresenceMessage.Action;
+import io.ably.lib.util.Codec.Format;
 import io.ably.lib.util.Log;
 
 public class RealtimePresenceTest extends ParameterizedTest {
@@ -463,7 +464,7 @@ public class RealtimePresenceTest extends ParameterizedTest {
 				clientId = testClientId1;
 			}};
 			fillInOptions(client1Opts);
-			client1Opts.useBinaryProtocol = true;
+			client1Opts.protocolFormat = Format.msgpack;
 			clientAbly1 = new AblyRealtime(client1Opts);
 
 			/* get channel */

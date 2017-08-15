@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +19,7 @@ import io.ably.lib.test.common.ParameterizedTest;
 import io.ably.lib.transport.Defaults;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ClientOptions;
+import io.ably.lib.util.Codec.Format;
 
 /**
  * Test for correct version headers passed to websocket
@@ -31,7 +31,7 @@ public class RealtimeHttpHeaderTest extends ParameterizedTest {
 	@Before
 	public void setUp() throws IOException {
 		/* Create custom RouterNanoHTTPD class for getting session object */
-		port = testParams.useBinaryProtocol ? 27333 : 27332;
+		port = testParams.protocolFormat.equals(Format.msgpack) ? 27333 : 27332;
 		server = new SessionHandlerNanoHTTPD(port);
 		server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true);
 
@@ -62,7 +62,7 @@ public class RealtimeHttpHeaderTest extends ParameterizedTest {
 			opts.port = port;
 			opts.realtimeHost = "localhost";
 			opts.tls = false;
-			opts.useBinaryProtocol = testParams.useBinaryProtocol;
+			opts.protocolFormat = testParams.protocolFormat;
 
 			server.resetRequestParameters();
 			realtime = new AblyRealtime(opts);
@@ -89,14 +89,14 @@ public class RealtimeHttpHeaderTest extends ParameterizedTest {
 
 			/* Spec RTN2a */
 			assertEquals("Verify correct format", requestParameters.get("format"),
-					Collections.singletonList(testParams.useBinaryProtocol ? "msgpack" : "json"));
+					Collections.singletonList(testParams.protocolFormat.name()));
 
 			/* test echo option */
 			opts = new ClientOptions(key);
 			opts.port = port;
 			opts.realtimeHost = "localhost";
 			opts.tls = false;
-			opts.useBinaryProtocol = testParams.useBinaryProtocol;
+			opts.protocolFormat = testParams.protocolFormat;
 			opts.echoMessages = false;
 			server.resetRequestParameters();
 			realtime = new AblyRealtime(opts);
@@ -119,7 +119,7 @@ public class RealtimeHttpHeaderTest extends ParameterizedTest {
 			opts.port = port;
 			opts.realtimeHost = "localhost";
 			opts.tls = false;
-			opts.useBinaryProtocol = testParams.useBinaryProtocol;
+			opts.protocolFormat = testParams.protocolFormat;
 			opts.useTokenAuth = true;
 			opts.token = key; /* not really a token, but ok for this test */
 			opts.clientId = clientId;

@@ -7,8 +7,9 @@ import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.ProtocolMessage;
-import io.ably.lib.types.ProtocolSerializer;
 import io.ably.lib.types.ProtocolMessage.Action;
+import io.ably.lib.util.Codec;
+import io.ably.lib.util.Codec.Format;
 import io.ably.lib.util.Log;
 
 import java.net.URI;
@@ -47,7 +48,8 @@ public class WebSocketTransport implements ITransport {
 	protected WebSocketTransport(TransportParams params, ConnectionManager connectionManager) {
 		this.params = params;
 		this.connectionManager = connectionManager;
-		this.channelBinaryMode = params.options.useBinaryProtocol;
+		this.protocolFormat = params.options.protocolFormat;
+		this.codec = Codec.get(protocolFormat, ProtocolMessage.class);
 		/* We do not require Ably heartbeats, as we can use WebSocket pings instead. */
 		params.heartbeats = false;
 	}
@@ -117,17 +119,13 @@ public class WebSocketTransport implements ITransport {
 	@Override
 	public void send(ProtocolMessage msg) throws AblyException {
 		try {
-			if(channelBinaryMode) {
-				byte[] encodedMsg = ProtocolSerializer.writeMsgpack(msg);
-				if (Log.level <= Log.VERBOSE) {
-					ProtocolMessage decodedMsg = ProtocolSerializer.readMsgpack(encodedMsg);
-					Log.v(TAG, "send(): " + decodedMsg.action + ": " + new String(ProtocolSerializer.writeJSON(decodedMsg)));
-				}
-				wsConnection.send(encodedMsg);
+			if(codec.getIsBinary()) {
+				wsConnection.send(codec.encode(msg));
 			} else {
-				if (Log.level <= Log.VERBOSE)
-					Log.v(TAG, "send(): " + new String(ProtocolSerializer.writeJSON(msg)));
-				wsConnection.send(ProtocolSerializer.writeJSON(msg));
+				wsConnection.send(codec.encodeToText(msg));
+			}
+			if (Log.level <= Log.VERBOSE) {
+				Log.v(TAG, "send(): " + msg.toString());
 			}
 		} catch (Exception e) {
 			throw AblyException.fromThrowable(e);
@@ -161,7 +159,7 @@ public class WebSocketTransport implements ITransport {
 		@Override
 		public void onMessage(ByteBuffer blob) {
 			try {
-				connectionManager.onMessage(WebSocketTransport.this, ProtocolSerializer.readMsgpack(blob.array()));
+				connectionManager.onMessage(WebSocketTransport.this, codec.decode(blob.array()));
 			} catch (AblyException e) {
 				String msg = "Unexpected exception processing received binary message";
 				Log.e(TAG, msg, e);
@@ -172,7 +170,7 @@ public class WebSocketTransport implements ITransport {
 		@Override
 		public void onMessage(String string) {
 			try {
-				connectionManager.onMessage(WebSocketTransport.this, ProtocolSerializer.fromJSON(string));
+				connectionManager.onMessage(WebSocketTransport.this, codec.decodeFromText(string));
 			} catch (AblyException e) {
 				String msg = "Unexpected exception processing received text message";
 				Log.e(TAG, msg, e);
@@ -336,7 +334,8 @@ public class WebSocketTransport implements ITransport {
 
 	private final TransportParams params;
 	private final ConnectionManager connectionManager;
-	private final boolean channelBinaryMode;
+	private final Format protocolFormat;
+	private final Codec<ProtocolMessage> codec;
 	private String wsUri;
 	private ConnectListener connectListener;
 

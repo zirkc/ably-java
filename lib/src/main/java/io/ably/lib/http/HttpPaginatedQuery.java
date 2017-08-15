@@ -18,7 +18,7 @@ import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.HttpPaginatedResponse;
 import io.ably.lib.types.Param;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 public class HttpPaginatedQuery implements ResponseHandler<HttpPaginatedResponse> {
 
@@ -138,7 +138,7 @@ public class HttpPaginatedQuery implements ResponseHandler<HttpPaginatedResponse
 			if(!"application/json".equals(contentType)) {
 				throw AblyException.fromErrorInfo(new ErrorInfo("Unexpected content type: " + contentType, 500, 50000));
 			}
-			JsonElement jsonBody = Serialisation.gsonParser.parse(new String(body, Charset.forName("UTF-8")));
+			JsonElement jsonBody = Json.gsonParser.parse(new String(body, Charset.forName("UTF-8")));
 			if(!jsonBody.isJsonArray()) {
 				return new JsonElement[] { jsonBody };
 			}

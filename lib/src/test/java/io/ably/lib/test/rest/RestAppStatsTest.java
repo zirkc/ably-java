@@ -15,6 +15,7 @@ import io.ably.lib.types.PaginatedResult;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.Stats;
 import io.ably.lib.types.StatsReader;
+import io.ably.lib.util.Codec.Format;
 
 import java.util.Date;
 
@@ -37,7 +38,7 @@ public class RestAppStatsTest extends ParameterizedTest {
 	@BeforeClass
 	public static void populateStats() {
 		try {
-			ClientOptions opts = testVars.createOptions(testVars.keys[0].keyStr, Setup.TestParameters.TEXT);
+			ClientOptions opts = testVars.createOptions(testVars.keys[0].keyStr, Setup.TestParameters.JSON);
 			AblyRest ably = new AblyRest(opts);
 			/* get time, preferring time from Ably */
 			long currentTime = System.currentTimeMillis();
@@ -76,7 +77,7 @@ public class RestAppStatsTest extends ParameterizedTest {
 					+ ']'
 				);
 
-			ably.http.post("/stats", HttpUtils.defaultAcceptHeaders(false), null, StatsWriter.asJsonRequest(testStats), null, true);
+			ably.http.post("/stats", HttpUtils.defaultAcceptHeaders(Format.json), null, StatsWriter.asJsonRequest(testStats), null, true);
 		} catch (AblyException e) {}
 	}
 

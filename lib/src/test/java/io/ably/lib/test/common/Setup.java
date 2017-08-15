@@ -15,7 +15,9 @@ import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ClientOptions;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.PresenceMessage;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Codec.Format;
+import io.ably.lib.util.Encodable;
+import io.ably.lib.util.Json;
 
 public class Setup {
 
@@ -52,7 +54,7 @@ public class Setup {
 		public PresenceMessage[] presence;
 	}
 
-	public static class AppSpec {
+	public static class AppSpec implements Encodable {
 		public String id;
 		public String appId;
 		public String accountId;
@@ -65,20 +67,20 @@ public class Setup {
 	}
 
 	public static class TestParameters {
-		public boolean useBinaryProtocol;
+		public Format protocolFormat;
 		public String name;
 
-		public static TestParameters BINARY = new TestParameters(true, "binary_protocol");
-		public static TestParameters TEXT = new TestParameters(false, "text_protocol");
+		public static TestParameters MSGPACK = new TestParameters(Format.msgpack);
+		public static TestParameters JSON = new TestParameters(Format.json);
 
-		public TestParameters(boolean useBinaryProtocol, String name) {
-			this.useBinaryProtocol = useBinaryProtocol;
-			this.name = name;
+		public TestParameters(Format protocolFormat) {
+			this.protocolFormat = protocolFormat;
+			this.name = protocolFormat.name();
 		}
 
 		public boolean equals(Object obj) {
 			TestParameters arg = (TestParameters)obj;
-			return arg.useBinaryProtocol == this.useBinaryProtocol;
+			return arg.protocolFormat.equals(this.protocolFormat);
 		}
 
 		public String toString() {
@@ -86,7 +88,7 @@ public class Setup {
 		}
 
 		public static TestParameters getDefault() {
-			return BINARY;
+			return MSGPACK;
 		}
 	}
 
@@ -126,7 +128,7 @@ public class Setup {
 
 		public void fillInOptions(ClientOptions opts, TestParameters params) {
 			if(params == null) { params = TestParameters.getDefault(); }
-			opts.useBinaryProtocol = params.useBinaryProtocol;
+			opts.protocolFormat = params.protocolFormat;
 			opts.restHost = restHost;
 			opts.realtimeHost = realtimeHost;
 			opts.environment = environment;
@@ -195,14 +197,14 @@ public class Setup {
 				System.exit(1);
 			}
 			try {
-				testVars = ably.http.post("/apps", null, null, new JsonRequestBody(appSpec), new ResponseHandler<TestVars>() {
+				testVars = ably.http.post("/apps", null, null, JsonRequestBody.create(appSpec), new ResponseHandler<TestVars>() {
 					@Override
 					public TestVars handleResponse(Response response, ErrorInfo error) throws AblyException {
 						if(error != null) {
 							throw AblyException.fromErrorInfo(error);
 						}
 
-						TestVars result = (TestVars)Serialisation.gson.fromJson(new String(response.body), TestVars.class);
+						TestVars result = (TestVars)Json.gson.fromJson(new String(response.body), TestVars.class);
 						result.restHost = host;
 						result.realtimeHost = wsHost;
 						result.environment = environment;
@@ -235,7 +237,7 @@ public class Setup {
 				opts.tlsPort = tlsPort;
 				opts.tls = true;
 				ably = new AblyRest(opts);
-				ably.http.del("/apps/" + testVars.appId, HttpUtils.defaultAcceptHeaders(false), null, null, true);
+				ably.http.del("/apps/" + testVars.appId, HttpUtils.defaultAcceptHeaders(Format.json), null, null, true);
 			} catch (AblyException ae) {
 				System.err.println("Unable to delete test app: " + ae);
 				ae.printStackTrace();

@@ -3,7 +3,7 @@ package io.ably.lib.types;
 import java.io.UnsupportedEncodingException;
 
 import io.ably.lib.http.Http.BodyHandler;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 /**
  * StatsReader: internal
@@ -20,7 +20,7 @@ public class StatsReader  {
 	}
 
 	public static Stats[] readJson(String packed) throws AblyException {
-		return Serialisation.gson.fromJson(packed, Stats[].class);
+		return Json.gson.fromJson(packed, Stats[].class);
 	}
 
 	public static BodyHandler<Stats> statsResponseHandler = new BodyHandler<Stats>() {

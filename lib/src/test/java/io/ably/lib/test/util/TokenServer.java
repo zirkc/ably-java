@@ -29,7 +29,6 @@ package io.ably.lib.test.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import fi.iki.elonen.NanoHTTPD;
 import io.ably.lib.rest.AblyRest;
@@ -39,9 +38,7 @@ import io.ably.lib.rest.Auth.TokenRequest;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.ErrorResponse;
-import io.ably.lib.util.Serialisation;
-
-import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
+import io.ably.lib.util.Json;
 
 public class TokenServer extends NanoHTTPD {
 
@@ -54,7 +51,6 @@ public class TokenServer extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
         Method method = session.getMethod();
         String target = session.getUri();
-        Map<String, String> headers = session.getHeaders();
 
         if (method.equals(Method.POST)) {
 			try {
@@ -113,15 +109,6 @@ public class TokenServer extends NanoHTTPD {
 		}
 	}
 
-	private static Response params2ErrorResponse(Map<String, String> params, Response.Status status) {
-		StringBuilder builder = new StringBuilder();
-		for(Entry<String, String> entry : params.entrySet()) {
-			if(builder.length() != 0) builder.append('&');
-			builder.append(entry.getKey()).append('=').append(entry.getValue());
-		}
-		return error2Response(new ErrorInfo(builder.toString(), status.getRequestStatus(), 0));
-	}
-
 	private static TokenParams params2TokenParams(Map<String, String> params) {
 		TokenParams tokenParams = new TokenParams();
 		if(params.containsKey("client_id"))
@@ -138,7 +125,7 @@ public class TokenServer extends NanoHTTPD {
 	}
 
 	private static Response json2Response(Object obj) {
-		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, Serialisation.gson.toJson(obj));
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, Json.gson.toJson(obj));
 	}
 
 	private static Response.Status getStatus(int statusCode) {
@@ -160,7 +147,7 @@ public class TokenServer extends NanoHTTPD {
 	private static Response error2Response(ErrorInfo errorInfo) {
 		ErrorResponse err = new ErrorResponse();
 		err.error = errorInfo;
-		return newFixedLengthResponse(getStatus(errorInfo.statusCode), MIME_JSON, Serialisation.gson.toJson(err));
+		return newFixedLengthResponse(getStatus(errorInfo.statusCode), MIME_JSON, Json.gson.toJson(err));
 	}
 
 	private final AblyRest ably;

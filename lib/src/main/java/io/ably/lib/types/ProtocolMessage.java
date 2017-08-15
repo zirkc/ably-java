@@ -16,6 +16,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import io.ably.lib.util.Log;
+import io.ably.lib.util.Msgpack;
+import io.ably.lib.util.Msgpack.MsgpackEncodable;
 
 /**
  * A message sent and received over the Realtime protocol.
@@ -25,7 +27,7 @@ import io.ably.lib.util.Log;
  * See the Ably client library developer documentation for further
  * details on the members of a ProtocolMessage.
  */
-public class ProtocolMessage {
+public class ProtocolMessage implements MsgpackEncodable<ProtocolMessage> {
 	public enum Action {
 		heartbeat,
 		ack,
@@ -121,7 +123,7 @@ public class ProtocolMessage {
 	public ConnectionDetails connectionDetails;
 	public AuthDetails auth;
 
-	void writeMsgpack(MessagePacker packer) throws IOException {
+	public void writeMsgpack(MessagePacker packer) throws IOException {
 		int fieldCount = 1; //action
 		if(channel != null) ++fieldCount;
 		if(msgSerial != null) ++fieldCount;
@@ -141,11 +143,11 @@ public class ProtocolMessage {
 		}
 		if(messages != null) {
 			packer.packString("messages");
-			MessageSerializer.writeMsgpackArray(messages, packer);
+			Msgpack.messageCodec.encodeArray(messages, packer);
 		}
 		if(presence != null) {
 			packer.packString("presence");
-			PresenceSerializer.writeMsgpackArray(presence, packer);
+			Msgpack.presenceCodec.encodeArray(presence, packer);
 		}
 		if(auth != null) {
 			packer.packString("auth");
@@ -153,7 +155,7 @@ public class ProtocolMessage {
 		}
 	}
 
-	ProtocolMessage readMsgpack(MessageUnpacker unpacker) throws IOException {
+	public ProtocolMessage readMsgpack(MessageUnpacker unpacker) throws IOException {
 		int fieldCount = unpacker.unpackMapHeader();
 		for(int i = 0; i < fieldCount; i++) {
 			String fieldName = unpacker.unpackString().intern();
@@ -183,9 +185,9 @@ public class ProtocolMessage {
 			} else if(fieldName == "timestamp") {
 				timestamp = unpacker.unpackLong();
 			} else if(fieldName == "messages") {
-				messages = MessageSerializer.readMsgpackArray(unpacker);
+				messages = Msgpack.messageCodec.decodeArray(unpacker);
 			} else if(fieldName == "presence") {
-				presence = PresenceSerializer.readMsgpackArray(unpacker);
+				presence = Msgpack.presenceCodec.decodeArray(unpacker);
 			} else if(fieldName == "connectionDetails") {
 				connectionDetails = ConnectionDetails.fromMsgpack(unpacker);
 			} else if(fieldName == "auth") {

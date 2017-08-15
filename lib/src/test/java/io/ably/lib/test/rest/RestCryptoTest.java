@@ -36,7 +36,7 @@ public class RestCryptoTest extends ParameterizedTest {
 		ClientOptions opts = createOptions(testVars.keys[0].keyStr);
 		ably = new AblyRest(opts);
 		ClientOptions opts_alt = createOptions(testVars.keys[0].keyStr);
-		opts_alt.useBinaryProtocol = testParams.useBinaryProtocol;
+		opts_alt.protocolFormat = testParams.protocolFormat;
 		ably_alt = new AblyRest(opts_alt);
 	}
 

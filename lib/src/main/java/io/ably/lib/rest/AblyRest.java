@@ -24,8 +24,9 @@ import io.ably.lib.types.PaginatedResult;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.Stats;
 import io.ably.lib.types.StatsReader;
+import io.ably.lib.util.Codec.Format;
 import io.ably.lib.util.Log;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 /**
  * AblyRest
@@ -119,13 +120,13 @@ public class AblyRest {
 	 * @throws AblyException
 	 */
 	public long time() throws AblyException {
-		return http.get("/time", HttpUtils.defaultAcceptHeaders(false), null, new ResponseHandler<Long>() {
+		return http.get("/time", HttpUtils.defaultAcceptHeaders(Format.json), null, new ResponseHandler<Long>() {
 			@Override
 			public Long handleResponse(Response response, ErrorInfo error) throws AblyException {
 				if(error != null) {
 					throw AblyException.fromErrorInfo(error);
 				}
-				return (Long)Serialisation.gson.fromJson(new String(response.body), Long[].class)[0];
+				return (Long)Json.gson.fromJson(new String(response.body), Long[].class)[0];
 			}}, false).longValue();
 	}
 
@@ -137,13 +138,13 @@ public class AblyRest {
 	 * @param callback
 	 */
 	public void timeAsync(Callback<Long> callback) {
-		asyncHttp.get("/time", HttpUtils.defaultAcceptHeaders(false), null, new ResponseHandler<Long>() {
+		asyncHttp.get("/time", HttpUtils.defaultAcceptHeaders(Format.json), null, new ResponseHandler<Long>() {
 			@Override
 			public Long handleResponse(Response response, ErrorInfo error) throws AblyException {
 				if(error != null) {
 					throw AblyException.fromErrorInfo(error);
 				}
-				return Serialisation.gson.fromJson(new String(response.body), Long[].class)[0];
+				return Json.gson.fromJson(new String(response.body), Long[].class)[0];
 			}
 		}, false, callback);
 	}
@@ -157,7 +158,7 @@ public class AblyRest {
 	 * @throws AblyException
 	 */
 	public PaginatedResult<Stats> stats(Param[] params) throws AblyException {
-		return new PaginatedQuery<Stats>(http, "/stats", HttpUtils.defaultAcceptHeaders(false), params, StatsReader.statsResponseHandler).get();
+		return new PaginatedQuery<Stats>(http, "/stats", HttpUtils.defaultAcceptHeaders(Format.json), params, StatsReader.statsResponseHandler).get();
 	}
 
 	/**
@@ -167,7 +168,7 @@ public class AblyRest {
 	 * @return
 	 */
 	public void statsAsync(Param[] params, Callback<AsyncPaginatedResult<Stats>> callback)  {
-		(new AsyncPaginatedQuery<Stats>(asyncHttp, "/stats", HttpUtils.defaultAcceptHeaders(false), params, StatsReader.statsResponseHandler)).get(callback);
+		(new AsyncPaginatedQuery<Stats>(asyncHttp, "/stats", HttpUtils.defaultAcceptHeaders(Format.json), params, StatsReader.statsResponseHandler)).get(callback);
 	}
 
 	/**
@@ -182,7 +183,7 @@ public class AblyRest {
 	 * @throws AblyException if it was not possible to complete the request, or an error response was received
 	 */
 	public HttpPaginatedResponse request(String method, String path, Param[] params, RequestBody body, Param[] headers) throws AblyException {
-		headers = HttpUtils.mergeHeaders(HttpUtils.defaultAcceptHeaders(false), headers);
+		headers = HttpUtils.mergeHeaders(HttpUtils.defaultAcceptHeaders(Format.json), headers);
 		return new HttpPaginatedQuery(http, method, path, headers, params, body).exec();
 	}
 
@@ -197,7 +198,7 @@ public class AblyRest {
 	 * @param callback: called with the asynchronous result
 	 */
 	public void requestAsync(String method, String path, Param[] params, RequestBody body, Param[] headers, final AsyncHttpPaginatedResponse.Callback callback)  {
-		headers = HttpUtils.mergeHeaders(HttpUtils.defaultAcceptHeaders(false), headers);
+		headers = HttpUtils.mergeHeaders(HttpUtils.defaultAcceptHeaders(Format.json), headers);
 		(new AsyncHttpPaginatedQuery(asyncHttp, method, path, headers, params, body)).exec(callback);
 	}
 

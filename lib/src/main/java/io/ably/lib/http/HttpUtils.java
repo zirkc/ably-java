@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.Param;
+import io.ably.lib.util.Codec.Format;
 
 /**
  * HttpUtils: utility methods for Http operations
@@ -30,12 +31,18 @@ public class HttpUtils {
 		mimeTypes.put("msgpack", "application/x-msgpack");
 	}
 
-	public static Param[] defaultAcceptHeaders(boolean binary) {
-		Param[] headers;
-		if(binary) {
-			headers = new Param[]{ new Param("Accept", "application/x-msgpack,application/json") };
-		} else {
+	public static Param[] defaultAcceptHeaders(Format format) {
+		Param[] headers = null;
+		switch(format) {
+		case json:
 			headers = new Param[]{ new Param("Accept", "application/json") };
+			break;
+		case msgpack:
+			headers = new Param[]{ new Param("Accept", "application/x-msgpack,application/json") };
+			break;
+		case bson:
+			headers = new Param[]{ new Param("Accept", "application/x-bson,application/json") };
+			break;
 		}
 		return headers;
 	}

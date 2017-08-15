@@ -25,7 +25,7 @@ import io.ably.lib.types.ErrorInfo;
 import io.ably.lib.types.Param;
 import io.ably.lib.util.Base64Coder;
 import io.ably.lib.util.Log;
-import io.ably.lib.util.Serialisation;
+import io.ably.lib.util.Json;
 
 /**
  * Token-generation and authentication operations for the Ably API.
@@ -223,7 +223,7 @@ public class Auth {
 		 */
 		@Deprecated
 		public static TokenDetails fromJSON(JsonObject json) {
-			return Serialisation.gson.fromJson(json, TokenDetails.class);
+			return Json.gson.fromJson(json, TokenDetails.class);
 		}
 
 		/**
@@ -233,7 +233,7 @@ public class Auth {
 		 * @return
 		 */
 		public static TokenDetails fromJson(String json) {
-			return Serialisation.gson.fromJson(json, TokenDetails.class);
+			return Json.gson.fromJson(json, TokenDetails.class);
 		}
 
 		/**
@@ -242,14 +242,14 @@ public class Auth {
 		 * @return
 		 */
 		public static TokenDetails fromJsonElement(JsonObject json) {
-			return Serialisation.gson.fromJson(json, TokenDetails.class);
+			return Json.gson.fromJson(json, TokenDetails.class);
 		}
 
 		/**
 		 * Convert a TokenDetails into a JSON object.
 		 */
 		public JsonObject asJsonElement() {
-			return (JsonObject)Serialisation.gson.toJsonTree(this);
+			return (JsonObject)Json.gson.toJsonTree(this);
 		}
 
 		/**
@@ -397,14 +397,14 @@ public class Auth {
 		public String mac;
 
 		/**
-		 * Convert a JSON serialisation to a TokenParams.
+		 * Convert a JSON Json to a TokenParams.
 		 * Deprecated: use fromJson() instead
 		 * @param json
 		 * @return
 		 */
 		@Deprecated
 		public static TokenRequest fromJSON(JsonObject json) {
-			return Serialisation.gson.fromJson(json, TokenRequest.class);
+			return Json.gson.fromJson(json, TokenRequest.class);
 		}
 
 		/**
@@ -413,7 +413,7 @@ public class Auth {
 		 * @return
 		 */
 		public static TokenRequest fromJsonElement(JsonObject json) {
-			return Serialisation.gson.fromJson(json, TokenRequest.class);
+			return Json.gson.fromJson(json, TokenRequest.class);
 		}
 
 		/**
@@ -423,14 +423,14 @@ public class Auth {
 		 * @return
 		 */
 		public static TokenRequest fromJson(String json) {
-			return Serialisation.gson.fromJson(json, TokenRequest.class);
+			return Json.gson.fromJson(json, TokenRequest.class);
 		}
 
 		/**
 		 * Convert a TokenParams into a JSON object.
 		 */
 		public JsonObject asJsonElement() {
-			return (JsonObject)Serialisation.gson.toJsonTree(this);
+			return (JsonObject)Json.gson.toJsonTree(this);
 		}
 
 		/**
@@ -605,7 +605,7 @@ public class Auth {
 								}
 							}
 							/* if not explicitly indicated, we will just assume it's JSON */
-							JsonElement json = Serialisation.gsonParser.parse(new String(body));
+							JsonElement json = Json.gsonParser.parse(new String(body));
 							if(!(json instanceof JsonObject)) {
 								throw AblyException.fromErrorInfo(new ErrorInfo("Unexpected response type from auth callback", 406, 40170));
 							}
@@ -674,7 +674,7 @@ public class Auth {
 				}
 				try {
 					String jsonText = new String(response.body);
-					JsonObject json = (JsonObject)Serialisation.gsonParser.parse(jsonText);
+					JsonObject json = (JsonObject)Json.gsonParser.parse(jsonText);
 					return TokenDetails.fromJsonElement(json);
 				} catch(JsonParseException e) {
 					throw AblyException.fromThrowable(e);
