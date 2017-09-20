@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+
 import com.google.gson.JsonParseException;
 
 import io.ably.lib.debug.DebugOptions;
@@ -184,6 +187,7 @@ public class Http {
 			int proxyPort = proxyOptions.port;
 			if(proxyPort == 0) { throw AblyException.fromErrorInfo(new ErrorInfo("Unable to configure proxy without proxy port", 40000, 400)); }
 			this.proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+
 			String proxyUser = proxyOptions.username;
 			if(proxyUser != null) {
 				String proxyPassword = proxyOptions.password;
@@ -417,9 +421,20 @@ public class Http {
 	public <T> T httpExecute(URL url, Proxy proxy, String method, Param[] headers, RequestBody requestBody, boolean withCredentials, ResponseHandler<T> responseHandler) throws AblyException {
 		HttpURLConnection conn = null;
 		try {
-			conn = (HttpURLConnection)url.openConnection(proxy);
-			boolean withProxyCredentials = (proxy != Proxy.NO_PROXY) && (proxyAuth != null);
-			return httpExecute(conn, method, headers, requestBody, withCredentials, withProxyCredentials, responseHandler);
+			boolean requiresProxy = (proxy != Proxy.NO_PROXY),
+					requiresProxyCredentials = requiresProxy && (proxyAuth != null),
+					requiresTunnel = requiresProxy && url.getProtocol().equals("https");
+
+			if(requiresTunnel) {
+				conn = (HttpURLConnection)url.openConnection();
+				((HttpsURLConnection)conn).setSSLSocketFactory(getTunnellingSSLSocketFactory());
+			} else if(requiresProxy) {
+				conn = (HttpURLConnection)url.openConnection(proxy);
+			} else {
+				conn = (HttpURLConnection)url.openConnection();
+			}
+
+			return httpExecute(conn, method, headers, requestBody, withCredentials, requiresProxyCredentials, responseHandler);
 		} catch(IOException ioe) {
 			throw AblyException.fromThrowable(ioe);
 		} finally {
@@ -442,10 +457,17 @@ public class Http {
 	 */
 	<T> T httpExecute(HttpURLConnection conn, String method, Param[] headers, RequestBody requestBody, boolean withCredentials, boolean withProxyCredentials, ResponseHandler<T> responseHandler) throws AblyException {
 		Response response;
-		boolean credentialsIncluded = false;
+		boolean credentialsIncluded = false, proxyCredentialsIncluded = false;
 		RawHttpListener rawHttpListener = null;
 		String id = null;
 		try {
+			if(withProxyCredentials) {
+				System.out.println("***** conn: " + conn.getClass().getName());
+				if(conn instanceof HttpsURLConnection) {
+					((HttpsURLConnection)conn).setSSLSocketFactory(getTunnellingSSLSocketFactory());
+				}
+			}
+			
 			/* prepare connection */
 			conn.setRequestMethod(method);
 			conn.setConnectTimeout(options.httpOpenTimeout);
@@ -457,10 +479,19 @@ public class Http {
 				conn.setRequestProperty(AUTHORIZATION, authHeader);
 				credentialsIncluded = true;
 			}
-			if(withProxyCredentials && proxyAuth.hasChallenge()) {
-				byte[] encodedRequestBody = (requestBody != null) ? requestBody.getEncoded() : null;
-				String proxyAuthorizationHeader = proxyAuth.getAuthorizationHeader(method, conn.getURL().getPath(), encodedRequestBody);
-				conn.setRequestProperty(PROXY_AUTHORIZATION, proxyAuthorizationHeader);
+			String proxyAuthorizationHeader = null;
+			if(withProxyCredentials) {
+//				System.out.println("***** conn: " + conn.getClass().getName());
+//				if(conn instanceof HttpsURLConnection) {
+//					((HttpsURLConnection)conn).setSSLSocketFactory(getTunnellingSSLSocketFactory());
+//				}
+
+				if(proxyAuth.hasChallenge()) {
+					byte[] encodedRequestBody = (requestBody != null) ? requestBody.getEncoded() : null;
+					proxyAuthorizationHeader = proxyAuth.getAuthorizationHeader(method, conn.getURL().getPath(), encodedRequestBody);
+					conn.setRequestProperty(PROXY_AUTHORIZATION, proxyAuthorizationHeader);
+					proxyCredentialsIncluded = true;
+				}
 			}
 			boolean acceptSet = false;
 			if(headers != null) {
@@ -489,6 +520,9 @@ public class Http {
 				Log.v(TAG, "HTTP request: " + conn.getURL() + " " + method);
 				if (credentialsIncluded)
 					Log.v(TAG, "  " + AUTHORIZATION + ": " + authHeader);
+				if(proxyCredentialsIncluded)
+					Log.v(TAG, "  " + PROXY_AUTHORIZATION + ": " + proxyAuthorizationHeader);
+
 				for (Map.Entry<String, List<String>> entry : requestProperties.entrySet())
 					for (String val : entry.getValue())
 						Log.v(TAG, "  " + entry.getKey() + ": " + val);
@@ -805,6 +839,13 @@ public class Http {
 		return proxy;
 	}
 
+	private SSLSocketFactory getTunnellingSSLSocketFactory() {
+		if(tunnellingSSLSocketFactory == null) {
+			tunnellingSSLSocketFactory = new TunnellingSSLSocketFactory(proxyOptions, proxyAuth);
+		}
+		return tunnellingSSLSocketFactory;
+	}
+
 	/*************************
 	 *     Private state
 	 *************************/
@@ -832,6 +873,7 @@ public class Http {
 	private final ProxyOptions proxyOptions;
 	private HttpAuth proxyAuth;
 	private Proxy proxy = Proxy.NO_PROXY;
+	private SSLSocketFactory tunnellingSSLSocketFactory;
 	private boolean isDisposed;
 
 	private static final String TAG                 = Http.class.getName();
