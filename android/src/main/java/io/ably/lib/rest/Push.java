@@ -3,14 +3,17 @@ package io.ably.lib.rest;
 import com.google.gson.JsonObject;
 
 import io.ably.lib.http.Http;
+import io.ably.lib.http.HttpConstants;
 import io.ably.lib.http.HttpCore;
 import io.ably.lib.http.HttpScheduler;
 import io.ably.lib.http.HttpUtils;
 import io.ably.lib.types.AblyException;
 import io.ably.lib.types.Callback;
+import io.ably.lib.types.Function;
 import io.ably.lib.types.Param;
 import io.ably.lib.types.RegistrationToken;
 import io.ably.lib.types.ErrorInfo;
+import io.ably.lib.util.Base64Coder;
 import io.ably.lib.util.Log;
 import io.ably.lib.util.Serialisation;
 import io.ably.lib.util.IntentUtils;
@@ -23,9 +26,9 @@ import android.content.BroadcastReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
+import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.lang.reflect.Constructor;
-
 
 public class Push extends PushBase {
     public Push(AblyRest rest) {
@@ -92,88 +95,94 @@ public class Push extends PushBase {
      * reified States of this state machine, we do it anyway for uniformness, and to more
      * straightforwardly implement the abstract state machine from the spec.
      */
-    static class ActivationStateMachine {
-        static ActivationStateMachine INSTANCE = null;
+    public static class ActivationStateMachine {
+        public static ActivationStateMachine INSTANCE = null;
 
-        static class CalledActivate extends Event {
-            static CalledActivate useCustomRegisterer(boolean use, SharedPreferences prefs) {
+        public static class CalledActivate extends Event {
+            public static CalledActivate useCustomRegisterer(boolean use, SharedPreferences prefs) {
                 prefs.edit().putBoolean(PersistKeys.USE_CUSTOM_REGISTERER, use).apply();
                 return new CalledActivate();
             }
         }
 
-        static class CalledDeactivate extends Event {
+        public static class CalledDeactivate extends Event {
             static CalledDeactivate useCustomDeregisterer(boolean use, SharedPreferences prefs) {
                 prefs.edit().putBoolean(PersistKeys.USE_CUSTOM_DEREGISTERER, use).apply();
                 return new CalledDeactivate();
             }
         }
 
-        static class GotPushDeviceDetails extends Event {}
+        public static class GotPushDeviceDetails extends Event {}
 
-        static class GotUpdateToken extends Event {
+        public static class GotUpdateToken extends Event {
             final String updateToken;
             GotUpdateToken(String token) { this.updateToken = token; }
         }
 
-        static class GettingUpdateTokenFailed extends ErrorEvent {
+        public static class GettingUpdateTokenFailed extends ErrorEvent {
             GettingUpdateTokenFailed(ErrorInfo reason) { super(reason); }
         }
 
-        static class RegistrationUpdated extends Event {}
+        public static class RegistrationUpdated extends Event {}
 
-        static class UpdatingRegistrationFailed extends ErrorEvent {
-            UpdatingRegistrationFailed(ErrorInfo reason) { super(reason); }
+        public static class UpdatingRegistrationFailed extends ErrorEvent {
+            public UpdatingRegistrationFailed(ErrorInfo reason) { super(reason); }
         }
 
-        static class Deregistered extends Event {}
+        public static class Deregistered extends Event {}
 
-        static class DeregistrationFailed extends ErrorEvent {
-            DeregistrationFailed(ErrorInfo reason) { super(reason); }
+        public static class DeregistrationFailed extends ErrorEvent {
+            public DeregistrationFailed(ErrorInfo reason) { super(reason); }
         }
 
-        private abstract static class Event {};
+        public abstract static class Event {};
 
-        private abstract static class ErrorEvent extends Event {
+        public abstract static class ErrorEvent extends Event {
             final ErrorInfo reason;
             ErrorEvent(ErrorInfo reason) { this.reason = reason; }
         }
 
-        private static class NotActivated extends PersistentState {
+        public static class NotActivated extends PersistentState {
             public NotActivated(ActivationStateMachine machine) { super(machine); }
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledDeactivate) {
                     machine.callDeactivatedCallback(null);
                     return this;
                 } else if (event instanceof CalledActivate) {
-                    LocalDevice device = rest.device(machine.context);
+                    LocalDevice device = machine.getDevice();
 
                     if (device.updateToken != null) {
                         // Already registered.
+                        machine.pendingEvents.add(new CalledActivate());
                         return new WaitingForNewPushDeviceDetails(machine);
                     }
 
                     if (device.getRegistrationToken() != null) {
-                        machine.handleEvent(new GotPushDeviceDetails());
+                        machine.pendingEvents.add(new GotPushDeviceDetails());
                     }
 
                     return new WaitingForPushDeviceDetails(machine);
+                } else if (event instanceof GotPushDeviceDetails) {
+                    return this;
                 }
                 return null;
             }
         }
 
-        private static class WaitingForPushDeviceDetails extends PersistentState {
+        protected LocalDevice getDevice() {
+            return rest.device(context);
+        }
+
+        public static class WaitingForPushDeviceDetails extends PersistentState {
             public WaitingForPushDeviceDetails(ActivationStateMachine machine) { super(machine); }
-            State transition(final Event event) {
+            public State transition(final Event event) {
                 if (event instanceof CalledActivate) {
                     return this;
                 } else if (event instanceof CalledDeactivate) {
                     machine.callDeactivatedCallback(null);
                     return new NotActivated(machine);
                 } else if (event instanceof GotPushDeviceDetails) {
-                    final LocalDevice device = rest.device(machine.context);
-                    device.resetId(machine.context);
+                    final LocalDevice device = machine.getDevice();
 
                     if (machine.prefs.getBoolean(PersistKeys.USE_CUSTOM_REGISTERER, false)) {
                         machine.useCustomRegisterer(device, true);
@@ -182,7 +191,11 @@ public class Push extends PushBase {
                         machine.rest.http.request(new Http.Execute<JsonObject>() {
                             @Override
                             public void execute(HttpScheduler http, Callback<JsonObject> callback) throws AblyException {
-                                http.post("/push/deviceRegistrations", HttpUtils.defaultAcceptHeaders(rest.options.useBinaryProtocol), null, body, new Serialisation.HttpResponseHandler<JsonObject>(), true, callback);
+                                Param[] params = null;
+                                if (machine.rest.options.pushFullWait) {
+                                    params = Param.push(params, "fullWait", "true");
+                                }
+                                http.post("/push/deviceRegistrations", HttpUtils.defaultAcceptHeaders(rest.options.useBinaryProtocol), params, body, new Serialisation.HttpResponseHandler<JsonObject>(), true, callback);
                             }
                         }).async(new Callback<JsonObject>() {
                             @Override
@@ -204,13 +217,13 @@ public class Push extends PushBase {
             }
         }
 
-        private static class WaitingForUpdateToken extends State {
+        public static class WaitingForUpdateToken extends State {
             public WaitingForUpdateToken(ActivationStateMachine machine) { super(machine); }
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledActivate) {
                     return this;
                 } else if (event instanceof GotUpdateToken) {
-                    LocalDevice device = rest.device(machine.context);
+                    LocalDevice device = machine.getDevice();
                     device.setUpdateToken(machine.context, ((GotUpdateToken) event).updateToken);
                     machine.callActivatedCallback(null);
                     return new WaitingForNewPushDeviceDetails(machine);
@@ -222,18 +235,18 @@ public class Push extends PushBase {
             }
         }
 
-        private static class WaitingForNewPushDeviceDetails extends PersistentState {
+        public static class WaitingForNewPushDeviceDetails extends PersistentState {
             public WaitingForNewPushDeviceDetails(ActivationStateMachine machine) { super(machine); }
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledActivate) {
                     machine.callActivatedCallback(null);
                     return this;
                 } else if (event instanceof CalledDeactivate) {
-                    LocalDevice device = rest.device(machine.context);
+                    LocalDevice device = machine.getDevice();
                     deregister(machine, device);
                     return new WaitingForDeregistration(machine, this);
                 } else if (event instanceof GotPushDeviceDetails) {
-                    DeviceDetails device = rest.device(machine.context);
+                    DeviceDetails device = machine.getDevice();
 
                     updateRegistration(machine, device);
 
@@ -243,9 +256,9 @@ public class Push extends PushBase {
             }
         }
 
-        private static class WaitingForRegistrationUpdate extends State {
+        public static class WaitingForRegistrationUpdate extends State {
             public WaitingForRegistrationUpdate(ActivationStateMachine machine) { super(machine); }
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledActivate) {
                     machine.callActivatedCallback(null);
                     return this;
@@ -261,21 +274,21 @@ public class Push extends PushBase {
             }
         }
 
-        private static class AfterRegistrationUpdateFailed extends PersistentState {
+        public static class AfterRegistrationUpdateFailed extends PersistentState {
             public AfterRegistrationUpdateFailed(ActivationStateMachine machine) { super(machine); }
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledActivate || event instanceof GotPushDeviceDetails) {
-                    updateRegistration(machine, rest.device(machine.context));
+                    updateRegistration(machine, machine.getDevice());
                     return new WaitingForRegistrationUpdate(machine);
                 } else if (event instanceof CalledDeactivate) {
-                    deregister(machine, rest.device(machine.context));
+                    deregister(machine, machine.getDevice());
                     return new WaitingForDeregistration(machine, this);
                 }
                 return null;
             }
         }
 
-        private static class WaitingForDeregistration extends State {
+        public static class WaitingForDeregistration extends State {
             private State previousState;
 
             public WaitingForDeregistration(ActivationStateMachine machine, State previousState) {
@@ -283,11 +296,11 @@ public class Push extends PushBase {
                 this.previousState = previousState;
             }
 
-            State transition(Event event) {
+            public State transition(Event event) {
                 if (event instanceof CalledDeactivate) {
                     return this;
                 } else if (event instanceof Deregistered) {
-                    LocalDevice device = rest.device(machine.context);
+                    LocalDevice device = machine.getDevice();
                     device.setUpdateToken(machine.context, null);
                     machine.callDeactivatedCallback(null);
                     return new NotActivated(machine);
@@ -299,7 +312,7 @@ public class Push extends PushBase {
             }
         }
 
-        private static abstract class State {
+        public static abstract class State {
             protected final ActivationStateMachine machine;
             protected final AblyRest rest;
 
@@ -309,7 +322,7 @@ public class Push extends PushBase {
                 rest = machine.rest;
             }
 
-            abstract State transition(Event event);
+            public abstract State transition(Event event);
         }
 
         private static abstract class PersistentState extends State {
@@ -406,7 +419,15 @@ public class Push extends PushBase {
                 machine.rest.http.request(new Http.Execute<Void>() {
                     @Override
                     public void execute(HttpScheduler http, Callback<Void> callback) throws AblyException {
-                        http.patch("/push/deviceRegistrations/" + device.id, HttpUtils.defaultAcceptHeaders(machine.rest.options.useBinaryProtocol), null, body, null, true, callback);
+                        Param[] headers = HttpUtils.defaultAcceptHeaders(machine.rest.options.useBinaryProtocol);
+                        headers = Param.push(headers, HttpConstants.Headers.AUTHORIZATION, "Bearer " + Base64Coder.encodeString(device.updateToken));
+
+                        Param[] params = null;
+                        if (machine.rest.options.pushFullWait) {
+                            params = Param.push(params, "fullWait", "true");
+                        }
+
+                        http.patch("/push/deviceRegistrations/" + device.id, headers, params, body, null, false, callback);
                     }
                 }).async(new Callback<Void>() {
                     @Override
@@ -430,7 +451,11 @@ public class Push extends PushBase {
                 machine.rest.http.request(new Http.Execute<Void>() {
                     @Override
                     public void execute(HttpScheduler http, Callback<Void> callback) throws AblyException {
-                        http.del("/push/deviceRegistrations", HttpUtils.defaultAcceptHeaders(machine.rest.options.useBinaryProtocol), Param.push(null, "deviceId", device.id), null, true, callback);
+                        Param[] params = Param.push(null, "deviceId", device.id);
+                        if (machine.rest.options.pushFullWait) {
+                            params = Param.push(params, "fullWait", "true");
+                        }
+                        http.del("/push/deviceRegistrations", HttpUtils.defaultAcceptHeaders(machine.rest.options.useBinaryProtocol), params, null, true, callback);
                     }
                 }).async(new Callback<Void>() {
                     @Override
@@ -450,10 +475,10 @@ public class Push extends PushBase {
         private final Context context;
         private final AblyRest rest;
         private final SharedPreferences prefs;
-        private State current;
-        private ArrayDeque<Event> pendingEvents;
+        public State current;
+        public ArrayDeque<Event> pendingEvents;
 
-        ActivationStateMachine(Context context, AblyRest rest) {
+        protected ActivationStateMachine(Context context, AblyRest rest) {
             this.context = context;
             this.rest = rest;
             this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -471,7 +496,7 @@ public class Push extends PushBase {
                 return;
             }
 
-            Log.d(TAG, String.format("transition: %s -> %s", current.getClass().getSimpleName(), maybeNext.getClass().getSimpleName()));
+            Log.d(TAG, String.format("transition: %s -(%s)-> %s", current.getClass().getSimpleName(), event.getClass().getSimpleName(), maybeNext.getClass().getSimpleName()));
             current = maybeNext;
 
             while (true) {
@@ -480,7 +505,7 @@ public class Push extends PushBase {
                     break;
                 }
 
-                Log.d(TAG, "attempting to consume pending event: " + event.getClass().getSimpleName());
+                Log.d(TAG, "attempting to consume pending event: " + pending.getClass().getSimpleName());
 
                 maybeNext = current.transition(pending);
                 if (maybeNext == null) {
@@ -488,20 +513,38 @@ public class Push extends PushBase {
                 }
                 pendingEvents.poll();
 
-                Log.d(TAG, String.format("transition: %s -> %s", current.getClass().getSimpleName(), maybeNext.getClass().getSimpleName()));
+                Log.d(TAG, String.format("transition: %s -(%s)-> %s", current.getClass().getSimpleName(), pending.getClass().getSimpleName(), maybeNext.getClass().getSimpleName()));
                 current = maybeNext;
             }
 
             persist();
         }
 
+        public boolean reset() {
+            SharedPreferences.Editor editor = prefs.edit();
+            for (Field f : PersistKeys.class.getDeclaredFields()) {
+                try {
+                    editor.remove((String) f.get(null));
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            LocalDevice device = getDevice();
+            Function<Context, Void> refreshDevice = device.reset(editor);
+            boolean committed = editor.commit();
+            if (committed) {
+                current = getPersistedState();
+                pendingEvents = getPersistedPendingEvents();
+                refreshDevice.call(context);
+            }
+            return committed;
+        }
+
         private void persist() {
             SharedPreferences.Editor editor = prefs.edit();
 
             if (current instanceof PersistentState) {
-                // editor.putString(PersistKeys.CURRENT_STATE, current.getClass().getName());
-                String className = current.getClass().getName();
-                editor.putString(PersistKeys.CURRENT_STATE, className);
+                editor.putString(PersistKeys.CURRENT_STATE, current.getClass().getName());
             }
 
             editor.putInt(PersistKeys.PENDING_EVENTS_LENGTH, pendingEvents.size());
@@ -544,19 +587,26 @@ public class Push extends PushBase {
         }
 
         private static class PersistKeys {
-            private static final String CURRENT_STATE = "ABLY_PUSH_CURRENT_STATE";
-            private static final String PENDING_EVENTS_LENGTH = "ABLY_PUSH_PENDING_EVENTS_LENGTH";
-            private static final String PENDING_EVENTS_PREFIX = "ABLY_PUSH_PENDING_EVENTS";
-            private static final String USE_CUSTOM_REGISTERER = "ABLY_PUSH_USE_CUSTOM_REGISTERER";
-            private static final String USE_CUSTOM_DEREGISTERER = "ABLY_PUSH_USE_CUSTOM_DEREGISTERER";
+            static final String CURRENT_STATE = "ABLY_PUSH_CURRENT_STATE";
+            static final String PENDING_EVENTS_LENGTH = "ABLY_PUSH_PENDING_EVENTS_LENGTH";
+            static final String PENDING_EVENTS_PREFIX = "ABLY_PUSH_PENDING_EVENTS";
+            static final String USE_CUSTOM_REGISTERER = "ABLY_PUSH_USE_CUSTOM_REGISTERER";
+            static final String USE_CUSTOM_DEREGISTERER = "ABLY_PUSH_USE_CUSTOM_DEREGISTERER";
         }
 
         private static final String TAG = "AblyActivation";
     }
 
-    private synchronized ActivationStateMachine getStateMachine(Context context) {
+    public Function.Binary<Context, AblyRest, ActivationStateMachine> getMachine = new Function.Binary<Context, AblyRest, ActivationStateMachine>() {
+        @Override
+        public ActivationStateMachine call(Context context, AblyRest rest) {
+            return new ActivationStateMachine(context, rest);
+        }
+    };
+
+    public synchronized ActivationStateMachine getStateMachine(Context context) {
         if (ActivationStateMachine.INSTANCE == null) {
-            ActivationStateMachine.INSTANCE = new ActivationStateMachine(context, rest);
+            ActivationStateMachine.INSTANCE = getMachine.call(context, rest);
         }
         return ActivationStateMachine.INSTANCE;
     }

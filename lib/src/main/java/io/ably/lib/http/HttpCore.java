@@ -176,7 +176,10 @@ public class HttpCore {
 			conn.setReadTimeout(options.httpRequestTimeout);
 			conn.setDoInput(true);
 
-			String authHeader = (auth != null) ? auth.getAuthorizationHeader() : null;
+			String authHeader = Param.getFirst(headers, HttpConstants.Headers.AUTHORIZATION);
+			if (authHeader == null && auth != null) {
+				authHeader = auth.getAuthorizationHeader();
+			}
 			if(withCredentials && authHeader != null) {
 				conn.setRequestProperty(HttpConstants.Headers.AUTHORIZATION, authHeader);
 				credentialsIncluded = true;
@@ -222,7 +225,10 @@ public class HttpCore {
 				rawHttpListener = ((DebugOptions)options).httpListener;
 				if(rawHttpListener != null) {
 					id = String.valueOf(Math.random()).substring(2);
-					rawHttpListener.onRawHttpRequest(id, conn, method, (credentialsIncluded ? authHeader : null), requestProperties, requestBody);
+					response = rawHttpListener.onRawHttpRequest(id, conn, method, (credentialsIncluded ? authHeader : null), requestProperties, requestBody);
+					if (response != null) {
+						return handleResponse(conn, credentialsIncluded, response, responseHandler);
+					}
 				}
 			}
 

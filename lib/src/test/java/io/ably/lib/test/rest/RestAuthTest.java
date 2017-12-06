@@ -1372,8 +1372,8 @@ public class RestAuthTest extends ParameterizedTest {
 			DebugOptions options = new DebugOptions(testVars.keys[0].keyStr) {{
 				this.httpListener = new RawHttpListener() {
 					@Override
-					public void onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
-							Map<String, List<String>> requestHeaders, HttpCore.RequestBody requestBody) {
+					public HttpCore.Response onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
+															  Map<String, List<String>> requestHeaders, HttpCore.RequestBody requestBody) {
 						try {
 							if(testParams.useBinaryProtocol) {
 								messages[0] = MessageSerializer.readMsgpack(requestBody.getEncoded())[0];
@@ -1387,6 +1387,7 @@ public class RestAuthTest extends ParameterizedTest {
 							e.printStackTrace();
 							fail("auth_clientid_publish_implicit: Unexpected exception");
 						}
+						return null;
 					}
 
 					@Override
@@ -1439,8 +1440,8 @@ public class RestAuthTest extends ParameterizedTest {
 			DebugOptions options = new DebugOptions(testVars.keys[0].keyStr) {{
 				this.httpListener = new RawHttpListener() {
 					@Override
-					public void onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
-							Map<String, List<String>> requestHeaders, HttpCore.RequestBody requestBody) {
+					public HttpCore.Response onRawHttpRequest(String id, HttpURLConnection conn, String method, String authHeader,
+															  Map<String, List<String>> requestHeaders, HttpCore.RequestBody requestBody) {
 						try {
 							if(testParams.useBinaryProtocol) {
 								messages[0] = MessageSerializer.readMsgpack(requestBody.getEncoded())[0];
@@ -1454,6 +1455,7 @@ public class RestAuthTest extends ParameterizedTest {
 							e.printStackTrace();
 							fail("auth_clientid_publish_implicit: Unexpected exception");
 						}
+						return null;
 					}
 
 					@Override
@@ -1700,7 +1702,7 @@ public class RestAuthTest extends ParameterizedTest {
 		AblyRest ably;
 		TokenRequest tokenRequest;
 		try {
-			for (String cap : new String[] {null, ""}) {
+			for (final String cap : new String[] {null, ""}) {
 				ClientOptions opts = createOptions(testVars.keys[0].keyStr);
 				opts.clientId = "Test client id";
 				ably = new AblyRest(opts);
