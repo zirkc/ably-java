@@ -235,6 +235,7 @@ public class RealtimeReauthTest extends ParameterizedTest {
 		try {
 			/* init ably for token */
 			ClientOptions optsForToken = createOptions(testVars.keys[0].keyStr);
+			optsForToken.logLevel = Log.VERBOSE;
 			final AblyRest ablyForToken = new AblyRest(optsForToken);
 			System.out.println("done init ably for token");
 
@@ -252,6 +253,7 @@ public class RealtimeReauthTest extends ParameterizedTest {
 			ClientOptions opts = createOptions();
 			opts.clientId = testClientId;
 			opts.tokenDetails = firstToken;
+			opts.logLevel = Log.VERBOSE;
 			AblyRealtime ablyRealtime = new AblyRealtime(opts);
 			System.out.println("done create ably");
 
