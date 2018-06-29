@@ -11,6 +11,8 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Locale;
 
+import io.ably.lib.realtime.CompletionListener;
+import io.ably.lib.types.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,11 +27,6 @@ import io.ably.lib.test.common.Helpers.CompletionSet;
 import io.ably.lib.test.common.Helpers.CompletionWaiter;
 import io.ably.lib.test.common.Helpers.MessageWaiter;
 import io.ably.lib.test.common.ParameterizedTest;
-import io.ably.lib.types.AblyException;
-import io.ably.lib.types.ClientOptions;
-import io.ably.lib.types.Message;
-import io.ably.lib.types.PaginatedResult;
-import io.ably.lib.types.Param;
 
 public class RealtimeChannelHistoryTest extends ParameterizedTest {
 
@@ -1179,12 +1176,13 @@ public class RealtimeChannelHistoryTest extends ParameterizedTest {
 			assertEquals("Verify attached state reached", txChannel.state, ChannelState.attached);
 	
 			/* publish messages to the channel */
+			final CompletionSet msgComplete = new CompletionSet();
 			Thread publisherThread = new Thread() {
 				@Override
 				public void run() {
 					for(int i = 0; i < 50; i++) {
 						try {
-							txChannel.publish("history" + i, String.valueOf(i));
+							txChannel.publish("history" + i, String.valueOf(i), msgComplete.add());
 							try {
 								sleep(1L);
 							} catch(InterruptedException ie) {}
@@ -1193,6 +1191,11 @@ public class RealtimeChannelHistoryTest extends ParameterizedTest {
 							fail("channelhistory_from_attach: Unexpected exception");
 							return;
 						}
+					}
+					ErrorInfo[] errors = msgComplete.waitFor();
+					if (errors.length > 0) {
+						System.out.println("channelhistory_from_attach: errors in publishing messages " + errors);
+						fail("channelhistory_from_attach: errors in publishing messages");
 					}
 				}
 			};
