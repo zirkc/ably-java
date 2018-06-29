@@ -13,25 +13,25 @@ import io.ably.lib.test.common.Setup;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-	ConnectionManagerTest.class,
-	HostsTest.class,
-	EventEmitterTest.class,
-	RealtimeHttpHeaderTest.class,
-	RealtimeAuthTest.class,
-	RealtimeJWTTest.class,
-	RealtimeReauthTest.class,
-	RealtimeInitTest.class,
-	RealtimeConnectTest.class,
-	RealtimeConnectFailTest.class,
-	RealtimeChannelTest.class,
-	RealtimePresenceTest.class,
-	RealtimeMessageTest.class,
-	RealtimeResumeTest.class,
-	RealtimeRecoverTest.class,
-	RealtimeCryptoTest.class,
-	RealtimeCryptoMessageTest.class,
+	// ConnectionManagerTest.class,
+	// HostsTest.class,
+	// EventEmitterTest.class,
+	// RealtimeHttpHeaderTest.class,
+	// RealtimeAuthTest.class,
+	// RealtimeJWTTest.class,
+	// RealtimeReauthTest.class,
+	// RealtimeInitTest.class,
+	// RealtimeConnectTest.class,
+	// RealtimeConnectFailTest.class,
+	// RealtimeChannelTest.class,
+	// RealtimePresenceTest.class,
+	// RealtimeMessageTest.class,
+	// RealtimeResumeTest.class,
+	// RealtimeRecoverTest.class,
+	// RealtimeCryptoTest.class,
+	// RealtimeCryptoMessageTest.class,
 	RealtimeChannelHistoryTest.class,
-	RealtimePresenceHistoryTest.class
+	// RealtimePresenceHistoryTest.class
 })
 public class RealtimeSuite {
 
