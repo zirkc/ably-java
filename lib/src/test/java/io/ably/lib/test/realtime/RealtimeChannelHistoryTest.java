@@ -1230,6 +1230,9 @@ public class RealtimeChannelHistoryTest extends ParameterizedTest {
 			assertTrue("Expected at least one message", messages.items().length >= 1);
 
 			/* verify that the history and received messages meet */
+
+			System.out.println("======================= pending " + msgComplete.pending);
+			System.out.println("======================= errors " + msgComplete.errors);
 			int earliestReceivedOnConnection = Integer.valueOf((String)messageWaiter.receivedMessages.get(0).data).intValue();
 			int latestReceivedInHistory = Integer.valueOf((String)messages.items()[0].data).intValue();
 			assertEquals("Verify that the history and received messages meet", latestReceivedInHistory + 1, earliestReceivedOnConnection);
