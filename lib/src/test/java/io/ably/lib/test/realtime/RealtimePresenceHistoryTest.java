@@ -1068,7 +1068,7 @@ public class RealtimePresenceHistoryTest extends ParameterizedTest {
 						try {
 							txChannel.presence.enter(String.valueOf(i), msgComplete.add());
 							try {
-								sleep(100L);
+								sleep(1L);
 							} catch(InterruptedException ie) {}
 						} catch(AblyException e) {
 							e.printStackTrace();
@@ -1083,7 +1083,7 @@ public class RealtimePresenceHistoryTest extends ParameterizedTest {
 
 			/* wait 2 seconds */
 			try {
-				Thread.sleep(2000L);
+				Thread.sleep(20L);
 			} catch(InterruptedException ie) {
 				fail("presencehistory_from_attach: exception in publisher thread");
 			}
