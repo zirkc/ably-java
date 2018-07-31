@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:2.3.2'
     }
 }
 
@@ -21,8 +21,8 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.2'
+    compileSdkVersion 22
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         buildConfigField 'String', 'LIBRARY_NAME', '"android"'
@@ -33,8 +33,10 @@ android {
         versionName version
         setProperty("archivesBaseName", "ably-android-$versionName")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunnerArgument "class", "io.ably.lib.test.rest.RestSuite,io.ably.lib.test.realtime.RealtimeSuite,io.ably.lib.test.android.AndroidSuite,io.ably.lib.test.android.AndroidPushTest"
+        testInstrumentationRunnerArgument "class", "io.ably.lib.test.android.AndroidPushTest"
+        //testInstrumentationRunnerArgument "class", "io.ably.lib.test.rest.RestSuite,io.ably.lib.test.realtime.RealtimeSuite,io.ably.lib.test.android.AndroidSuite,io.ably.lib.test.android.AndroidPushTest"
         testInstrumentationRunnerArgument "timeout_msec", "150000"
+        testInstrumentationRunnerArgument "ABLY_ENV", "\"$System.env.ABLY_ENV\""
         consumerProguardFiles 'proguard.txt'
     }
 
