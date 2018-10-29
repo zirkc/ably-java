@@ -2,8 +2,8 @@ repositories {
   jcenter()
 }
 
-group = 'io.ably'
-version = '1.0.6'
+group = 'com.github.zirkc'
+version = '1.0.8'
 description = """Ably java client library"""
 
 tasks.withType(Javadoc) {
