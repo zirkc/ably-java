@@ -86,7 +86,8 @@ public class BaseMessage implements Cloneable {
 							continue;
 
 						case "utf-8":
-							try { data = new String((byte[])data, "UTF-8"); } catch(UnsupportedEncodingException e) {}
+						//	try { data = data; } catch(UnsupportedEncodingException e) {}
+							// 
 							continue;
 
 						case "json":
