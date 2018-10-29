@@ -2,7 +2,7 @@ repositories {
   jcenter()
 }
 
-group = 'com.github.zirkc'
+group = 'io.ably'
 version = '1.0.8'
 description = """Ably java client library"""
 
